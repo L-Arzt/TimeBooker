@@ -4,7 +4,7 @@ import Image from "next/image";
 import InputMask from 'react-input-mask';
 
 import bgMain from '../public/bgMainPage.png'
-import img1 from '../public/Glorbo.jpg'
+import img1 from '../public/OIP.jpg'
 import img2 from '../public/headerblockimg2.png'
 import bookimg from '../public/headerblockbook.png'
 import aboutmeimgmain from '../public/aboutmeimgmain.png'
@@ -108,7 +108,7 @@ export default function Home() {
       <section className="flex items-center justify-around my-10  relative flex-wrap">
         <header>
           <h1 className="text-[#374B5C] text-[33px] py-5">Репетитор по Английскому языку</h1>
-          <h1 className="text-[#374B5C] text-[33px] py-5">Glorbo Fruttodrillo</h1>
+          <h1 className="text-[#374B5C] text-[33px] py-5">Person</h1>
           <p className="text-[20px] py-5">Частный преподаватель по Английскому языку для детей и подростков.</p>
           <button className="flex border items-center justify-center border-[#FF9100] rounded-2xl bg-[#FF9100] py-2 px-8 ">
             <Link href='/#pricesBlock'><h1 className="text-white">Узнать цены</h1></Link>
