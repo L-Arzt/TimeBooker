@@ -21,13 +21,96 @@ import { getSession } from 'next-auth/react';
 export default function TimeTableAdmin({ data, weekRange }) {
     const [dataset, setDataset] = useState(data);
     const [hover, setHover] = useState({});
-    const [currentDay, setCurrentDay] = useState(new Date().getDay());
+    const [currentDay, setCurrentDay] = useState(() => {
+        const today = new Date().getDay();
+        // Если сегодня воскресенье (0), возвращаем 7, иначе возвращаем день недели
+        // Также проверяем, что день в допустимом диапазоне
+        let adjustedDay = today === 0 ? 7 : today;
+        
+        // Если день недели вне допустимого диапазона, устанавливаем понедельник (1)
+        if (adjustedDay < 1 || adjustedDay > 7) {
+            console.error('День недели вне допустимого диапазона:', { jsDay: today, adjustedDay });
+            adjustedDay = 1; // Устанавливаем понедельник
+        }
+        
+        console.log('Инициализация дня недели:', { jsDay: today, adjustedDay });
+        return adjustedDay;
+    });
     const [showWeek, setShowWeek] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [currentWeek, setCurrentWeek] = useState({ from: weekRange.from, to: weekRange.to });
 
     const context = useContext(ThemeContext);
     const slideContainerRef = useRef(null);
+    const tableRef = useRef(null);
+
+    // Обработчик клика вне ячейки для сброса всех hover-состояний
+    useEffect(() => {
+        function handleClickOutside(event) {
+            // Проверяем, что клик был вне таблицы или на пустой ячейке
+            if (tableRef.current && !tableRef.current.contains(event.target) || 
+                (event.target.closest('.table-cell-empty'))) {
+                console.log('Клик вне ячейки, сброс всех hover-состояний');
+                setHover({});
+            }
+        }
+
+        // Добавляем обработчик события
+        document.addEventListener('mousedown', handleClickOutside);
+        
+        // Очищаем обработчик при размонтировании компонента
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Сбрасываем состояние hover при изменении дня или режима отображения
+    useEffect(() => {
+        setHover({}); // Сбрасываем все hover-состояния
+        console.log('Сброс hover-состояний из-за изменения дня или режима отображения');
+    }, [currentDay, showWeek, dataset]);
+
+    // Добавляем обработчик события смены недели
+    useEffect(() => {
+        // Функция обработчик события смены недели
+        const handleWeekChange = () => {
+            console.log('Обработка события смены недели, сброс hover-состояний');
+            setHover({});
+        };
+        
+        // Добавляем слушатель события
+        document.addEventListener('weekChanged', handleWeekChange);
+        
+        // Очищаем слушатель при размонтировании компонента
+        return () => {
+            document.removeEventListener('weekChanged', handleWeekChange);
+        };
+    }, []);
+
+    // Функция для безопасного обновления hover-состояния
+    const handleMouseEnter = (lessonId) => {
+        console.log('Mouse Enter:', lessonId);
+        setHover(prev => {
+            const newState = { ...prev, [lessonId]: true };
+            return newState;
+        });
+    };
+
+    const handleMouseLeave = (lessonId) => {
+        console.log('Mouse Leave:', lessonId);
+        // Небольшая задержка для предотвращения "мерцания" при быстром перемещении курсора
+        setTimeout(() => {
+            setHover(prev => {
+                // Проверяем, что состояние не изменилось за время задержки
+                if (prev[lessonId]) {
+                    const newState = { ...prev };
+                    delete newState[lessonId]; // Удаляем запись вместо установки false
+                    return newState;
+                }
+                return prev;
+            });
+        }, 50);
+    };
 
     function getDateFromDay(date, day) {
         var result = new Date(date);
@@ -87,11 +170,19 @@ export default function TimeTableAdmin({ data, weekRange }) {
     }, [context.weeks, currentUser]);
 
     function handlePrevDay() {
-        setCurrentDay((prevDay) => (prevDay === 1 ? 7 : prevDay - 1));
+        setCurrentDay((prevDay) => {
+            const newDay = prevDay === 1 ? 7 : prevDay - 1;
+            console.log('Переключение на предыдущий день:', { prevDay, newDay });
+            return newDay;
+        });
     }
 
     function handleNextDay() {
-        setCurrentDay((prevDay) => (prevDay === 7 ? 1 : prevDay + 1));
+        setCurrentDay((prevDay) => {
+            const newDay = prevDay === 7 ? 1 : prevDay + 1;
+            console.log('Переключение на следующий день:', { prevDay, newDay });
+            return newDay;
+        });
     }
 
     function toggleShowWeek() {
@@ -132,10 +223,10 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                     {lesson ? (
                                         currentUser && lesson.userId === currentUser.id ? (
                                             <div className="relative w-[140px] h-[70px] flex flex-col items-center justify-center transition-all duration-200" 
-                                                onMouseEnter={() => setHover({ ...hover, [lesson.id]: true })} 
-                                                onMouseLeave={() => setHover({ ...hover, [lesson.id]: false })}>
+                                                onMouseEnter={() => handleMouseEnter(lesson.id)} 
+                                                onMouseLeave={() => handleMouseLeave(lesson.id)}>
                                                 {hover[lesson.id] ? (
-                                                    <div className='absolute z-20 flex items-center justify-center w-[250px] h-[120px] p-2 bg-white rounded-lg shadow-xl gap-2'>
+                                                    <div className={`absolute z-20 flex items-center justify-center w-[250px] h-[120px] p-2 bg-white rounded-lg shadow-xl gap-2 ${dayIndex >= 5 ? 'right-0' : ''}`}>
                                                         <div className='flex-col'>
                                                             <p className="font-semibold text-gray-800">{lesson.studentName}</p>
                                                             <p className="text-gray-600">{lesson.description}</p>
@@ -161,7 +252,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                             </div>
                                         )
                                     ) : (
-                                        <div className='flex w-[140px] h-[70px] items-center justify-center flex-col gap-2'>
+                                        <div className='flex w-[140px] h-[70px] items-center justify-center flex-col gap-2 table-cell-empty'>
                                             <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                             <Link
                                                 href={`/User/book/${i}/${dayIndex + 1}/${getDateFromDay(
@@ -183,11 +274,11 @@ export default function TimeTableAdmin({ data, weekRange }) {
                             {data.map((lesson) => {
                                 if (lesson.weekDay === currentDay && lesson.numberLesson === i) {
                                     return currentUser && lesson.userId === currentUser.id ? (
-                                        <div className="relative h-[70px] flex flex-col items-center justify-center transition-all duration-200" 
-                                            onMouseEnter={() => setHover({ ...hover, [lesson.id]: true })} 
-                                            onMouseLeave={() => setHover({ ...hover, [lesson.id]: false })}>
+                                        <div className="relative w-[400px] h-[70px] flex flex-col items-center justify-center transition-all duration-200" 
+                                            onMouseEnter={() => handleMouseEnter(lesson.id)} 
+                                            onMouseLeave={() => handleMouseLeave(lesson.id)}>
                                             {hover[lesson.id] ? (
-                                                <div className='absolute z-20 flex items-center justify-center w-[250px] h-[120px] p-2 bg-white rounded-lg shadow-xl gap-2'>
+                                                <div className='absolute z-20 flex items-center justify-center w-[250px] h-[120px] p-2 bg-white rounded-lg shadow-xl gap-2 right-auto'>
                                                     <div className='flex-col'>
                                                         <p className="font-semibold text-gray-800">{lesson.studentName}</p>
                                                         <p className="text-gray-600">{lesson.description}</p>
@@ -206,10 +297,12 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                                     <p className="z-0 text-gray-600">{lesson.description.slice(0, 10)}...</p>
                                                 </div>
                                             )}
+                                            <div className="h-[30px]"></div> {/* Пустой div для сохранения высоты */}
                                         </div>
                                     ) : (
-                                        <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2'>
+                                        <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2 table-cell-busy'>
                                             <h1 className='text-[#7E7E7E]'>Занято</h1>
+                                            <div className="h-[30px]"></div> {/* Пустой div для сохранения высоты как у ячейки со кнопкой "Забронировать" */}
                                         </div>
                                     );
                                 } else {
@@ -217,7 +310,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                 }
                             })}
                             {!data.some((lesson) => lesson.weekDay === currentDay && lesson.numberLesson === i) && (
-                                <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2'>
+                                <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2 table-cell-empty'>
                                     <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                     <Link
                                         href={`/User/book/${i}/${currentDay}/${getDateFromDay(
@@ -254,18 +347,18 @@ export default function TimeTableAdmin({ data, weekRange }) {
             <div className="absolute w-full">
                 {!showWeek && (
                     <div className="absolute flex justify-between w-full mt-4 top-[50%] px-10">
-                        <button onClick={handlePrevDay}>
-                            <Image src={backImg} alt="Previous Day" />
+                        <button onClick={handlePrevDay} className="relative z-10 p-2">
+                            <Image src={backImg} alt="Previous Day" className="pointer-events-none" />
                         </button>
-                        <button onClick={handleNextDay}>
-                            <Image src={nextImg} alt="Next Day" />
+                        <button onClick={handleNextDay} className="relative z-10 p-2">
+                            <Image src={nextImg} alt="Next Day" className="pointer-events-none" />
                         </button>
                     </div>
                 )}
             </div>
             {dataset && (
-                <div className={`overflow-x-scroll ${!showWeek ? 'mr-20' : ''}`}>
-                    <Table refProp={slideContainerRef}>
+                <div className={`overflow-x-scroll ${!showWeek ? 'mr-20' : 'mr-10'} relative`} style={{ paddingRight: showWeek ? '20px' : '0' }}>
+                    <Table refProp={slideContainerRef} ref={tableRef}>
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="font-medium"></TableHead>
@@ -278,24 +371,39 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                             {day}
                                             <br />
                                             <span className="text-sm text-gray-500">
-                                            {new Date(
-                                                new Date(context?.weeks?.from).setDate(
-                                                new Date(context?.weeks?.from).getDate() + index
-                                                )
-                                            ).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                                                {new Date(getDateFromDay(new Date(context?.weeks?.from), index + 1))
+                                                    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                                             </span>
                                         </TableHead>
                                         ))
                                     : (
                                         <TableHead className="font-semibold text-gray-500 text-[18px] text-center">
-                                            {daysOnWeek[currentDay - 1]}
+                                            {(() => {
+                                                console.log('Отображение дня недели:', { 
+                                                    currentDay, 
+                                                    dayName: currentDay >= 1 && currentDay <= 7 ? daysOnWeek[currentDay - 1] : 'Неизвестный день',
+                                                    date: context?.weeks?.from ? new Date(getDateFromDay(new Date(context.weeks.from), currentDay)) : null
+                                                });
+                                                // Проверяем, что currentDay в допустимом диапазоне
+                                                if (currentDay < 1 || currentDay > 7) {
+                                                    console.error('currentDay вне допустимого диапазона:', currentDay);
+                                                    // Устанавливаем текущий день на понедельник (1), если значение некорректно
+                                                    setTimeout(() => setCurrentDay(1), 0);
+                                                    return 'Загрузка...';
+                                                }
+                                                return daysOnWeek[currentDay - 1];
+                                            })()}
                                             <br />
                                             <span className="text-sm text-gray-500">
-                                            {new Date(
-                                                new Date(context?.weeks?.from).setDate(
-                                                new Date(context?.weeks?.from).getDate() + currentDay - 1
-                                                )
-                                            ).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                                                {(() => {
+                                                    console.log('Context weeks:', context?.weeks);
+                                                    if (!context?.weeks?.from) {
+                                                        console.error('context.weeks.from не определен!');
+                                                        return 'Загрузка...';
+                                                    }
+                                                    return new Date(getDateFromDay(new Date(context.weeks.from), currentDay))
+                                                        .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+                                                })()}
                                             </span>
                                         </TableHead>
                                         )

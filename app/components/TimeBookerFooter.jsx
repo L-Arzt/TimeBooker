@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
-export default function TimeBookerFooter({ businessName, businessType }) {
+export default function TimeBookerFooter({ businessName = 'TimeBooker', businessType = 'Платформа онлайн-бронирования' }) {
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-gray-900 text-white mt-10">
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Platform Info */}

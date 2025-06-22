@@ -43,21 +43,18 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
       case 'ADMIN':
         return (
           <>
-            <Link href='/Admin/Users'>
-              <h3 className="text-[#FF9100]">Пользователи</h3>
+            <Link href='/business/englishpro/admin/timetable'>
+              <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
-            <Link href='/Admin/Roles'>
-              <h3 className="text-[#FF9100]">Роли</h3>
-            </Link>
-            <Link href='/Admin/Settings'>
-              <h3 className="text-[#FF9100]">Настройки</h3>
+            <Link href='/business/englishpro/admin/profile'>
+              <h3 className="text-[#FF9100]">Профиль</h3>
             </Link>
           </>
         );
       default: // CLIENT
         return (
           <>
-            <Link href='/User/TimeTable'>
+            <Link href='/business/englishpro/user/timetable'>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
           </>
@@ -152,7 +149,7 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
                 <h3 className="text-white">Вход</h3>
               </Link>
             ) : (
-              <Link className='flex gap-2' href="/User/Profile">
+              <Link className='flex gap-2' href="/business/englishpro/user/profile">
                 <h3 className="text-white">Профиль</h3>
                 <figure>
                   <Image
@@ -166,35 +163,37 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
         </div>
       </section>
 
-      {/* Business indicator banner */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-blue-600">Вы находитесь на странице:</span>
-              <span className="text-sm font-semibold text-blue-800">{businessName}</span>
-              {businessType && (
-                <span className="text-xs text-blue-600">({businessType})</span>
-              )}
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/" 
-                className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                О платформе
-              </Link>
-              <Link 
-                href="/register" 
-                className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
-              >
-                Создать свою страницу
-              </Link>
+      {/* Business indicator banner - показываем только если передан businessName */}
+      {businessName && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-blue-600">Вы находитесь на странице:</span>
+                <span className="text-sm font-semibold text-blue-800">{businessName}</span>
+                {businessType && (
+                  <span className="text-xs text-blue-600">({businessType})</span>
+                )}
+              </div>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/" 
+                  className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  О платформе
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Создать свою страницу
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

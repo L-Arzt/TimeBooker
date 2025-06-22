@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { NextAuthOptions } from '@/config';
+import { notifyBookingCreated } from '@/app/libs/notificationService';
 
 const prisma = new PrismaClient();
 
@@ -51,6 +52,20 @@ export async function createLesson(prevState, formData) {
     });
 
     if (createLesson) {
+        // Отправляем уведомление о создании бронирования
+        try {
+            console.log('Отправка уведомления о создании бронирования');
+            await notifyBookingCreated({
+                userId: userId,
+                specialistId: 1, // Предполагаем, что ID специалиста = 1 (админ)
+                date: new Date(data.date).toLocaleDateString('ru-RU'),
+                time: `Занятие №${data.lessonNum}`,
+            });
+            console.log('Уведомление о создании бронирования отправлено');
+        } catch (error) {
+            console.error('Ошибка при отправке уведомления:', error);
+        }
+
         redirect('/User/TimeTable');
         return {
             message: 'Готово',

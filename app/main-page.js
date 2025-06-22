@@ -1,11 +1,6 @@
-import TimeBookerHeader from './components/TimeBookerHeader';
-import TimeBookerFooter from './components/TimeBookerFooter';
-
 export default function TimeBookerMainPage() {
     return (
         <div className="min-h-screen bg-white">
-            <TimeBookerHeader isMainPage={true} />
-
             {/* Hero Section */}
             <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
                 <div className="container mx-auto px-4 text-center">
@@ -185,11 +180,6 @@ export default function TimeBookerMainPage() {
                     </button>
                 </div>
             </section>
-
-            <TimeBookerFooter
-                businessName="TimeBooker"
-                businessType="Платформа онлайн-бронирования"
-            />
         </div>
     );
 } 

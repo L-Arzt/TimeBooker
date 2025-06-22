@@ -15,14 +15,37 @@ export default function MenuWeek() {
     const context = useContext(ThemeContext);
 
     useEffect(() => {
-        const today = new Date();
-        const currentWeek = {
-            from: startOfWeek(today, { weekStartsOn: 1 }),
-            to: endOfWeek(today, { weekStartsOn: 1 }),
-        };
-        setSelectedWeek(currentWeek);
-        context.setWeeks(currentWeek);
-    }, []);
+        // Только если weeks в контексте не определен, инициализируем его
+        if (!context.weeks || !context.weeks.from) {
+            const today = new Date();
+            const currentWeek = {
+                from: startOfWeek(today, { weekStartsOn: 1 }),
+                to: endOfWeek(today, { weekStartsOn: 1 }),
+            };
+            console.log('Инициализация недели в MenuWeek (weeks не был определен):', { 
+                today, 
+                currentWeek,
+                todayDay: today.getDay(),
+                adjustedDay: today.getDay() === 0 ? 7 : today.getDay()
+            });
+            setSelectedWeek(currentWeek);
+            context.setWeeks(currentWeek);
+        } else {
+            // Если weeks уже определен в контексте, используем его
+            console.log('MenuWeek: weeks уже определен в контексте:', context.weeks);
+            setSelectedWeek(context.weeks);
+        }
+    }, [context]);
+    
+    // Функция для обновления недели с дополнительной логикой сброса hover-эффектов
+    const updateWeek = (newWeek) => {
+        setSelectedWeek(newWeek);
+        context.setWeeks(newWeek);
+        
+        // Создаем пользовательское событие для оповещения других компонентов о смене недели
+        const weekChangeEvent = new CustomEvent('weekChanged', { detail: newWeek });
+        document.dispatchEvent(weekChangeEvent);
+    };
 
     return (
         <section className="flex justify-center items-center flex-col z-10">
@@ -58,26 +81,25 @@ export default function MenuWeek() {
                             modifiers={{ selected: selectedWeek }}
                             onDayClick={(day, modifiers) => {
                                 if (modifiers.selected) {
-                                    setSelectedWeek(undefined);
+                                    updateWeek(undefined);
                                     return;
                                 }
                                 const newWeek = {
                                     from: startOfWeek(day, { weekStartsOn: 1 }),
                                     to: endOfWeek(day, { weekStartsOn: 1 }),
                                 };
-                                setSelectedWeek(newWeek);
-                                context.setWeeks(newWeek);
+                                updateWeek(newWeek);
                             }}
                             onWeekNumberClick={(weekNumber, dates) => {
                                 if (selectedWeek?.from && isSameWeek(dates[0], selectedWeek.from)) {
-                                    setSelectedWeek(undefined);
+                                    updateWeek(undefined);
                                     return;
                                 }
-                                setSelectedWeek({
+                                const newWeek = {
                                     from: startOfWeek(dates[0]),
                                     to: endOfWeek(dates[dates.length - 1]),
-                                });
-                                context.setWeeks(selectedWeek.from);
+                                };
+                                updateWeek(newWeek);
                             }}
                         />
                     </div>

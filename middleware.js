@@ -1,36 +1,62 @@
 import { NextResponse } from 'next/server';
-import withAuth from 'next-auth/middleware';
+import { getToken } from 'next-auth/jwt';
 
-export default withAuth(function middleware(req) {
-    // Allow access to root path and login
-    if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/login') {
-        return;
+export async function middleware(request) {
+    // Добавляем текущий путь в заголовки для использования в layout
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-pathname', request.nextUrl.pathname);
+
+    // Редиректы с старых путей на новые
+    if (request.nextUrl.pathname.startsWith('/Admin/TimeTableAdmin')) {
+        return NextResponse.redirect(new URL('/business/englishpro/admin/timetable', request.url));
     }
 
-    // Check role-based access
-    const rolePermissions = {
-        user: ['/User'],
-        specialist: ['/User', '/Admin/book'],
-        manager: ['/User', '/Admin/book', '/Admin/TimeTableAdmin'],
-        admin: ['/User', '/Admin']
-    };
-
-    const userRole = req.nextauth.token?.role;
-    const currentPath = req.nextUrl.pathname;
-
-    // Check if user has permission for the current path
-    const hasPermission = rolePermissions[userRole]?.some(allowedPath =>
-        currentPath.startsWith(allowedPath)
-    );
-
-    if (!hasPermission) {
-        return NextResponse.redirect(new URL('/', req.url));
+    if (request.nextUrl.pathname.startsWith('/Admin/ProfileAdmin')) {
+        return NextResponse.redirect(new URL('/business/englishpro/admin/profile', request.url));
     }
-});
+
+    if (request.nextUrl.pathname.startsWith('/User/TimeTable')) {
+        return NextResponse.redirect(new URL('/business/englishpro/user/timetable', request.url));
+    }
+
+    if (request.nextUrl.pathname.startsWith('/User/Profile')) {
+        return NextResponse.redirect(new URL('/business/englishpro/user/profile', request.url));
+    }
+
+    // Защищенные пути
+    const protectedPaths = [
+        '/Admin',
+        '/User',
+        '/business/englishpro/admin',
+        '/business/englishpro/user'
+    ];
+
+    const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
+
+    if (isProtectedPath) {
+        const token = await getToken({ req: request });
+
+        if (!token) {
+            const url = new URL('/login', request.url);
+            url.searchParams.set('callbackUrl', request.url);
+            return NextResponse.redirect(url);
+        }
+
+        // Проверка роли для админских путей
+        if (request.nextUrl.pathname.startsWith('/Admin') || request.nextUrl.pathname.startsWith('/business/englishpro/admin')) {
+            if (token.role !== 'admin') {
+                return NextResponse.redirect(new URL('/', request.url));
+            }
+        }
+    }
+
+    return NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        },
+    });
+}
 
 export const config = {
-    matcher: [
-        '/User/:path*',
-        '/Admin/:path*'
-    ]
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
