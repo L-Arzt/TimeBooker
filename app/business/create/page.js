@@ -10,6 +10,11 @@ export default function CreateBusinessPage() {
         slug: '',
         description: '',
         type: '',
+        features: '',
+        prices: '',
+        promo: '',
+        contacts: '',
+        reviews: '',
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -50,13 +55,19 @@ export default function CreateBusinessPage() {
         setIsLoading(true);
 
         try {
+            const payload = {
+                ...formData,
+                features: formData.features ? JSON.stringify(JSON.parse(formData.features)) : '',
+                prices: formData.prices ? JSON.stringify(JSON.parse(formData.prices)) : '',
+                promo: formData.promo ? JSON.stringify(JSON.parse(formData.promo)) : '',
+                contacts: formData.contacts ? JSON.stringify(JSON.parse(formData.contacts)) : '',
+                reviews: formData.reviews ? JSON.stringify(JSON.parse(formData.reviews)) : '',
+                ownerId: session.user.id,
+            };
             const response = await fetch('/api/business/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    ownerId: session.user.id,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {

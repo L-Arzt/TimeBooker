@@ -15,15 +15,10 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
       case 'admin':
         return (
           <>
-            <Link href='/dashboard'>
-              <h3 className="text-[#FF9100]">Панель управления</h3>
-            </Link>
             <Link href={`/business/${businessSlug}/admin/timetable`}>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
-            <Link href={`/business/${businessSlug}/admin/profile`}>
-              <h3 className="text-[#FF9100]">Профиль</h3>
-            </Link>
+
           </>
         );
       case 'business':
@@ -32,9 +27,7 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
             <Link href={`/business/${businessSlug}/admin/timetable`}>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
-            <Link href={`/business/${businessSlug}/admin/profile`}>
-              <h3 className="text-[#FF9100]">Профиль</h3>
-            </Link>
+
           </>
         );
       default: // user
@@ -43,6 +36,7 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
             <Link href={`/business/${businessSlug}/user/timetable`}>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
+
           </>
         );
     }

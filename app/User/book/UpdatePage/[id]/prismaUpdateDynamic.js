@@ -42,21 +42,28 @@ export async function updateLesson(prevState, formData) {
         // Отправляем уведомление об обновлении бронирования
         try {
             console.log('Отправка уведомления об обновлении бронирования');
+            // Получаем бизнес и владельца
+            let business = null;
+            if (updatedLesson.businessId) {
+                business = await prisma.business.findUnique({ where: { id: updatedLesson.businessId } });
+            }
+            let specialistId = null;
+            if (business && business.ownerId) {
+                specialistId = business.ownerId;
+            }
+            const admins = await prisma.users.findMany({ where: { role: 'admin' } });
             await notifyBookingUpdated({
                 userId: userId,
-                specialistId: 1, // Предполагаем, что ID специалиста = 1 (админ)
+                specialistId: specialistId,
                 date: new Date(data.date).toLocaleDateString('ru-RU'),
                 time: `Занятие №${data.lessonNum}`,
+                adminIds: admins.map(a => a.id),
             });
             console.log('Уведомление об обновлении бронирования отправлено');
         } catch (error) {
             console.error('Ошибка при отправке уведомления:', error);
         }
-
-        redirect('/User/TimeTable');
-        return {
-            message: 'Готово',
-        };
+        return { redirectTo: `/business/${data.slug}/user/timetable` };
     }
     return {
         message: 'Ошибка',

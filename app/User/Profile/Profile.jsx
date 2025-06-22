@@ -7,12 +7,10 @@ import Image from 'next/image';
 import edit from '../../../public/edit.png';
 import { updateUserSettings } from '@/app/libs/notificationService';
 
-export default function Profile({ session }) {
-    const [userData, setUserData] = useState(null);
-    const [telegramId, setTelegramId] = useState('');
+export default function Profile({ user, lessons }) {
+    const [telegramId, setTelegramId] = useState(user?.settings?.telegramId || '');
     const [isEditing, setIsEditing] = useState(false);
     const [message, setMessage] = useState('');
-
     const TimeLessonS = {
         1: '8:30',
         2: '10:15',
@@ -30,31 +28,12 @@ export default function Profile({ session }) {
         6: '21:00',
     };
     const TimeOptions = { weekday: 'long', month: 'long', day: 'numeric' };
-
     const now = new Date();
-    const futureLessons = userData?.timetables?.filter(lesson => new Date(lesson.date) > now) || [];
-    const pastLessons = userData?.timetables?.filter(lesson => new Date(lesson.date) <= now) || [];
-
+    const futureLessons = lessons?.filter(lesson => new Date(lesson.date) > now) || [];
+    const pastLessons = lessons?.filter(lesson => new Date(lesson.date) <= now) || [];
     const [showMore, setShowMore] = useState(false);
-
-    useEffect(() => {
-        if (session?.user) {
-            fetchUserData();
-        }
-    }, [session]);
-
-    const fetchUserData = async () => {
-        try {
-            const response = await fetch('/api/user/profile');
-            if (response.ok) {
-                const data = await response.json();
-                setUserData(data);
-                setTelegramId(data.settings?.telegramId || '');
-            }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-        }
-    };
+    const handleShowMore = () => setShowMore(!showMore);
+    if (!user) return <div>Загрузка...</div>;
 
     const handleSave = async () => {
         try {
@@ -82,18 +61,10 @@ export default function Profile({ session }) {
         }
     };
 
-    const handleShowMore = () => {
-        setShowMore(!showMore);
-    };
-
-    if (!userData) {
-        return <div>Загрузка...</div>;
-    }
-
     return (
         <section>
             <div className='container bg-white rounded-xl py-10'>
-                {userData && (
+                {user && (
                     <>
                         <div className='border rounded-3xl '>
                             <div className='flex m-auto flex-col justify-center items-center'>
@@ -101,8 +72,8 @@ export default function Profile({ session }) {
                             </div>
                             <div className='flex items-center justify-around'>
                                 <div className='flex flex-col m-10 gap-5 w-2/4'>
-                                    <div className='flex flex-col'><span className='text-lg text-stone-500 m-3'>ФИО: </span><span className='w-2/4 font-bold text-stone-500 border rounded-3xl p-4'>{userData.userName}</span></div>
-                                    <div className='flex flex-col'><span className='text-lg text-stone-500 m-3'>Почта: </span><span className='w-2/4 font-bold text-stone-500 border rounded-3xl p-4'>{userData.email}</span></div>
+                                    <div className='flex flex-col'><span className='text-lg text-stone-500 m-3'>ФИО: </span><span className='w-2/4 font-bold text-stone-500 border rounded-3xl p-4'>{user.userName}</span></div>
+                                    <div className='flex flex-col'><span className='text-lg text-stone-500 m-3'>Почта: </span><span className='w-2/4 font-bold text-stone-500 border rounded-3xl p-4'>{user.email}</span></div>
 
                                 </div>
 
@@ -126,6 +97,7 @@ export default function Profile({ session }) {
                                             <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString('ru-RU', TimeOptions)}</p>
                                             <p><strong>Время:</strong> {TimeLessonS[lesson.numberLesson]}-{TimeLessonPo[lesson.numberLesson]}</p>
                                             <p><strong>Студент:</strong> {lesson.studentName}</p>
+                                            <p><strong>Бизнес:</strong> {lesson.business?.name || '—'}</p>
                                             <p><strong>Описание:</strong> {lesson.description}</p>
                                             <div>
                                                 <Link href={`/Admin/book/UpdatePage/${lesson.id}`}>
@@ -154,6 +126,7 @@ export default function Profile({ session }) {
                                                 <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString('ru-RU', TimeOptions)}</p>
                                                 <p><strong>Время:</strong> {TimeLessonS[lesson.numberLesson]}-{TimeLessonPo[lesson.numberLesson]}</p>
                                                 <p><strong>Студент:</strong> {lesson.studentName}</p>
+                                                <p><strong>Бизнес:</strong> {lesson.business?.name || '—'}</p>
                                                 <p><strong>Описание:</strong> {lesson.description}</p>
                                             </div>
                                         ))}
@@ -162,6 +135,7 @@ export default function Profile({ session }) {
                                                 <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString('ru-RU', TimeOptions)}</p>
                                                 <p><strong>Время:</strong> {TimeLessonS[lesson.numberLesson]}-{TimeLessonPo[lesson.numberLesson]}</p>
                                                 <p><strong>Студент:</strong> {lesson.studentName}</p>
+                                                <p><strong>Бизнес:</strong> {lesson.business?.name || '—'}</p>
                                                 <p><strong>Описание:</strong> {lesson.description}</p>
                                             </div>
                                         ))}
@@ -203,7 +177,7 @@ export default function Profile({ session }) {
                                                 <button
                                                     onClick={() => {
                                                         setIsEditing(false);
-                                                        setTelegramId(userData.settings?.telegramId || '');
+                                                        setTelegramId(user.settings?.telegramId || '');
                                                     }}
                                                     className='px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600'
                                                 >

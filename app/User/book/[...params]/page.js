@@ -1,10 +1,13 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { useRouter, useParams } from 'next/navigation';
+import Image from 'next/image';
 
-import { createLesson } from './prismaCreateDynamic';
+import { createLesson, deleteLesson } from './prismaCreateDynamic';
 
 import { useFormState } from 'react-dom';
+
 export default function Book({ params }) {
     const [studentName, setStudentName] = useState('');
     const [description, setDescription] = useState('');
@@ -96,6 +99,8 @@ export default function Book({ params }) {
                         value={selectedLearning.join(', ')}
                         name="typeLearning"
                     />
+
+                    <input hidden type="text" value={params.slug} name="slug" />
 
                     <input
                         className="flex w-[90%] h-[45px] items-center justify-center bg-[#FF9100] rounded-md text-stone-50"

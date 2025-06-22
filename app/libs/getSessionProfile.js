@@ -19,6 +19,9 @@ export async function getSessionAndUser() {
         where: {
             userId: session.user.id,
         },
+        include: {
+            business: true,
+        },
     });
 
     return { session, user, lessons };

@@ -33,6 +33,17 @@ export async function deleteLesson(params) {
         };
     }
 
+    // Получаем бизнес и владельца
+    let business = null;
+    if (booking.businessId) {
+        business = await prisma.business.findUnique({ where: { id: booking.businessId } });
+    }
+    let specialistId = null;
+    if (business && business.ownerId) {
+        specialistId = business.ownerId;
+    }
+    const admins = await prisma.users.findMany({ where: { role: 'admin' } });
+
     const deleteLesson = await prisma.timetable.delete({
         where: {
             id: Number(params),
@@ -45,16 +56,16 @@ export async function deleteLesson(params) {
             console.log('Отправка уведомления об отмене бронирования');
             await notifyBookingCancelled({
                 userId: session.user.id,
-                specialistId: 1, // Предполагаем, что ID специалиста = 1 (админ)
+                specialistId: specialistId,
                 date: new Date(booking.date).toLocaleDateString('ru-RU'),
                 time: `Занятие №${booking.numberLesson}`,
+                adminIds: admins.map(a => a.id),
             });
             console.log('Уведомление об отмене бронирования отправлено');
         } catch (error) {
             console.error('Ошибка при отправке уведомления:', error);
         }
-
-        redirect('/User/TimeTable');
+        return { redirectTo: `/business/${params.slug}/user/timetable` };
     }
 
     return {

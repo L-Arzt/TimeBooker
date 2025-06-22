@@ -22,11 +22,17 @@ export async function createLesson(prevState, formData) {
 
     const userId = session.user.id;
 
+    const slug = data.slug;
+    let business = null;
+    if (slug) {
+        business = await prisma.business.findUnique({ where: { slug } });
+    }
     const lesson = await prisma.timetable.findFirst({
         where: {
             date: new Date(data.date),
             numberLesson: Number(data.lessonNum),
-            // weekDay: Number(data.lessonDay), // если нужно
+            weekDay: Number(data.lessonDay),
+            businessId: business ? business.id : null,
         },
     });
 
@@ -48,6 +54,7 @@ export async function createLesson(prevState, formData) {
             typeLearning: data.typeLearning,
             booked: true,
             userId: userId,
+            businessId: business ? business.id : null,
         },
     });
 
@@ -55,21 +62,25 @@ export async function createLesson(prevState, formData) {
         // Отправляем уведомление о создании бронирования
         try {
             console.log('Отправка уведомления о создании бронирования');
+            // Получаем владельца бизнеса (specialistId)
+            let specialistId = null;
+            if (business && business.ownerId) {
+                specialistId = business.ownerId;
+            }
+            // Получаем всех админов
+            const admins = await prisma.users.findMany({ where: { role: 'admin' } });
             await notifyBookingCreated({
                 userId: userId,
-                specialistId: 1, // Предполагаем, что ID специалиста = 1 (админ)
+                specialistId: specialistId,
                 date: new Date(data.date).toLocaleDateString('ru-RU'),
                 time: `Занятие №${data.lessonNum}`,
+                adminIds: admins.map(a => a.id),
             });
             console.log('Уведомление о создании бронирования отправлено');
         } catch (error) {
             console.error('Ошибка при отправке уведомления:', error);
         }
-
-        redirect('/User/TimeTable');
-        return {
-            message: 'Готово',
-        };
+        return { redirectTo: `/business/${data.slug}/user/timetable` };
     }
     return {
         message: 'Ошибка',

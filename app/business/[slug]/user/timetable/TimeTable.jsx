@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -8,103 +8,72 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '../../../components/ui/table';
+} from '/components/ui/table';
 import Link from 'next/link';
-import { ThemeContext } from '../../components/ThemeProvider';
-import edit from '../../../public/edit.png';
+import { ThemeContext } from '../../../../components/ThemeProvider.jsx';
+import edit from '@/public/edit.png';
 import Image from 'next/image';
 import MenuWeek from '@/app/components/MenuWeek';
-import nextImg from '../../../public/arrownexttable.png';
-import backImg from '../../../public/arrowbacktable.png';
+import nextImg from '@/public/arrownexttable.png';
+import backImg from '@/public/arrowbacktable.png';
+import { useParams } from 'next/navigation';
 import { getSession } from 'next-auth/react';
 
-export default function TimeTableAdmin({ data, weekRange, user }) {
+export default function TimeTable({ data, weekRange }) {
     const [dataset, setDataset] = useState(data);
     const [hover, setHover] = useState({});
     const [currentDay, setCurrentDay] = useState(() => {
         const today = new Date().getDay();
-        // Если сегодня воскресенье (0), возвращаем 7, иначе возвращаем день недели
-        // Также проверяем, что день в допустимом диапазоне
         let adjustedDay = today === 0 ? 7 : today;
-        
-        // Если день недели вне допустимого диапазона, устанавливаем понедельник (1)
-        if (adjustedDay < 1 || adjustedDay > 7) {
-            console.error('День недели вне допустимого диапазона:', { jsDay: today, adjustedDay });
-            adjustedDay = 1; // Устанавливаем понедельник
-        }
-        
-        console.log('Инициализация дня недели:', { jsDay: today, adjustedDay });
+        if (adjustedDay < 1 || adjustedDay > 7) adjustedDay = 1;
         return adjustedDay;
     });
     const [showWeek, setShowWeek] = useState(false);
-    const [currentUser, setCurrentUser] = useState(user || null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [currentWeek, setCurrentWeek] = useState({ from: weekRange.from, to: weekRange.to });
 
     const context = useContext(ThemeContext);
     const slideContainerRef = useRef(null);
     const tableRef = useRef(null);
+    const params = useParams();
+    const slug = params?.slug;
 
-    // Обработчик клика вне ячейки для сброса всех hover-состояний
     useEffect(() => {
         function handleClickOutside(event) {
-            // Проверяем, что клик был вне таблицы или на пустой ячейке
             if (tableRef.current && !tableRef.current.contains(event.target) || 
                 (event.target.closest('.table-cell-empty'))) {
-                console.log('Клик вне ячейки, сброс всех hover-состояний');
                 setHover({});
             }
         }
-
-        // Добавляем обработчик события
         document.addEventListener('mousedown', handleClickOutside);
-        
-        // Очищаем обработчик при размонтировании компонента
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
-    // Сбрасываем состояние hover при изменении дня или режима отображения
     useEffect(() => {
-        setHover({}); // Сбрасываем все hover-состояния
-        console.log('Сброс hover-состояний из-за изменения дня или режима отображения');
+        setHover({});
     }, [currentDay, showWeek, dataset]);
 
-    // Добавляем обработчик события смены недели
     useEffect(() => {
-        // Функция обработчик события смены недели
         const handleWeekChange = () => {
-            console.log('Обработка события смены недели, сброс hover-состояний');
             setHover({});
         };
-        
-        // Добавляем слушатель события
         document.addEventListener('weekChanged', handleWeekChange);
-        
-        // Очищаем слушатель при размонтировании компонента
         return () => {
             document.removeEventListener('weekChanged', handleWeekChange);
         };
     }, []);
 
-    // Функция для безопасного обновления hover-состояния
     const handleMouseEnter = (lessonId) => {
-        console.log('Mouse Enter:', lessonId);
-        setHover(prev => {
-            const newState = { ...prev, [lessonId]: true };
-            return newState;
-        });
+        setHover(prev => ({ ...prev, [lessonId]: true }));
     };
-
     const handleMouseLeave = (lessonId) => {
-        console.log('Mouse Leave:', lessonId);
-        // Небольшая задержка для предотвращения "мерцания" при быстром перемещении курсора
         setTimeout(() => {
             setHover(prev => {
-                // Проверяем, что состояние не изменилось за время задержки
                 if (prev[lessonId]) {
                     const newState = { ...prev };
-                    delete newState[lessonId]; // Удаляем запись вместо установки false
+                    delete newState[lessonId];
                     return newState;
                 }
                 return prev;
@@ -128,89 +97,58 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
         'Воскресенье'
     ];
 
-    const shortDaysOfWeek = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-
     useEffect(() => {
-        if (!currentUser) {
-            async function fetchCurrentUser() {
-                const session = await getSession();
-                if (session) {
-                    setCurrentUser(session.user);
-                } else {
-                    setCurrentUser(null);
-                }
+        async function fetchCurrentUser() {
+            const session = await getSession();
+            if (session) {
+                setCurrentUser(session.user);
             }
-            fetchCurrentUser();
         }
-    }, [currentUser]);
+        fetchCurrentUser();
+    }, []);
 
     useEffect(() => {
-        if (context.weeks && currentUser) {
+        if (context.weeks && currentUser && slug) {
             async function getData() {
-                const resp = await fetch('/api/getTimeTable', {
+                const resp = await fetch(`/api/getTimeTable?slug=${slug}`, {
                     method: 'POST',
                     body: JSON.stringify({
                         monday: context.weeks.from,
                         sunday: context.weeks.to,
+                        userId: currentUser.id,
+                        slug: slug,
                     }),
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
-
                 if (resp.ok) {
                     const data = await resp.json();
-                    console.log('Fetched data:', data);
                     setDataset(data.data);
-                } else {
-                    console.error('Failed to fetch data');
                 }
             }
-
             getData();
         }
-    }, [context.weeks, currentUser]);
+    }, [context.weeks, currentUser, slug]);
 
     function handlePrevDay() {
-        setCurrentDay((prevDay) => {
-            const newDay = prevDay === 1 ? 7 : prevDay - 1;
-            console.log('Переключение на предыдущий день:', { prevDay, newDay });
-            return newDay;
-        });
+        setCurrentDay((prevDay) => (prevDay === 1 ? 7 : prevDay - 1));
     }
-
     function handleNextDay() {
-        setCurrentDay((prevDay) => {
-            const newDay = prevDay === 7 ? 1 : prevDay + 1;
-            console.log('Переключение на следующий день:', { prevDay, newDay });
-            return newDay;
-        });
+        setCurrentDay((prevDay) => (prevDay === 7 ? 1 : prevDay + 1));
     }
-
     function toggleShowWeek() {
         setShowWeek((prevShowWeek) => !prevShowWeek);
     }
 
     function buildTable(data) {
         const TimeLessonS = {
-            1: '8:30',
-            2: '10:15',
-            3: '12:00',
-            4: '14:15',
-            5: '16:00',
-            6: '17:50',
+            1: '8:30', 2: '10:15', 3: '12:00', 4: '14:15', 5: '16:00', 6: '17:50',
         };
         const TimeLessonPo = {
-            1: '10:05',
-            2: '11:50',
-            3: '13:35',
-            4: '15:50',
-            5: '17:35',
-            6: '21:00',
+            1: '10:05', 2: '11:50', 3: '13:35', 4: '15:50', 5: '17:35', 6: '21:00',
         };
-
         let table = [];
-
         for (let i = 1; i < 7; i++) {
             let tablePart = (
                 <TableRow className='transition-all duration-300 ease-in-out hover:bg-gray-100 shadow-sm rounded-md' key={`row-${i}`}>
@@ -234,7 +172,7 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                                             <p className="text-gray-600">{lesson.description}</p>
                                                         </div>
                                                         <div>
-                                                            <Link href={`/User/book/UpdatePage/${lesson.id}`}>
+                                                            <Link href={`/business/${slug}/user/book/UpdatePage/${lesson.id}`}>
                                                                 <button className="flex items-center justify-center bg-[#FF9100] w-[35px] h-[35px] rounded-md text-white">
                                                                     <Image className='w-8 h-8 m-1 bg-[#FF9100] rounded-lg p-1' src={edit} alt='editImg' />
                                                                 </button>
@@ -257,7 +195,7 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                         <div className='flex w-[140px] h-[70px] items-center justify-center flex-col gap-2 table-cell-empty'>
                                             <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                             <Link
-                                                href={`/User/book/${i}/${dayIndex + 1}/${getDateFromDay(
+                                                href={`/business/${slug}/user/book/${i}/${dayIndex + 1}/${getDateFromDay(
                                                     new Date(context?.weeks?.from),
                                                     dayIndex + 1
                                                 )}`}
@@ -272,7 +210,7 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                             );
                         })
                     ) : (
-                        <TableCell className="py-3 px-5 border-t" key={`lesson-${i}-${currentDay}`}>
+                        <TableCell className="py-3 px-5 border-t" key={`lesson-${i}-${currentDay}`}> 
                             {data.map((lesson) => {
                                 if (lesson.weekDay === currentDay && lesson.numberLesson === i) {
                                     return currentUser && lesson.userId === currentUser.id ? (
@@ -286,7 +224,7 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                                         <p className="text-gray-600">{lesson.description}</p>
                                                     </div>
                                                     <div>
-                                                        <Link href={`/User/book/UpdatePage/${lesson.id}`}>
+                                                        <Link href={`/business/${slug}/user/book/UpdatePage/${lesson.id}`}>
                                                             <button className="flex items-center justify-center bg-[#FF9100] w-[35px] h-[35px] rounded-md text-white">
                                                                 <Image className='w-8 h-8 m-1 bg-[#FF9100] rounded-lg p-1' src={edit} alt='editImg' />
                                                             </button>
@@ -299,12 +237,12 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                                     <p className="z-0 text-gray-600">{lesson.description.slice(0, 10)}...</p>
                                                 </div>
                                             )}
-                                            <div className="h-[30px]"></div> {/* Пустой div для сохранения высоты */}
+                                            <div className="h-[30px]"></div>
                                         </div>
                                     ) : (
                                         <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2 table-cell-busy'>
                                             <h1 className='text-[#7E7E7E]'>Занято</h1>
-                                            <div className="h-[30px]"></div> {/* Пустой div для сохранения высоты как у ячейки со кнопкой "Забронировать" */}
+                                            <div className="h-[30px]"></div>
                                         </div>
                                     );
                                 } else {
@@ -315,7 +253,7 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                 <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2 table-cell-empty'>
                                     <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                     <Link
-                                        href={`/User/book/${i}/${currentDay}/${getDateFromDay(
+                                        href={`/business/${slug}/user/book/${i}/${currentDay}/${getDateFromDay(
                                             new Date(context?.weeks?.from),
                                             currentDay
                                         )}`}
@@ -380,32 +318,11 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
                                         ))
                                     : (
                                         <TableHead className="font-semibold text-gray-500 text-[18px] text-center">
-                                            {(() => {
-                                                console.log('Отображение дня недели:', { 
-                                                    currentDay, 
-                                                    dayName: currentDay >= 1 && currentDay <= 7 ? daysOnWeek[currentDay - 1] : 'Неизвестный день',
-                                                    date: context?.weeks?.from ? new Date(getDateFromDay(new Date(context.weeks.from), currentDay)) : null
-                                                });
-                                                // Проверяем, что currentDay в допустимом диапазоне
-                                                if (currentDay < 1 || currentDay > 7) {
-                                                    console.error('currentDay вне допустимого диапазона:', currentDay);
-                                                    // Устанавливаем текущий день на понедельник (1), если значение некорректно
-                                                    setTimeout(() => setCurrentDay(1), 0);
-                                                    return 'Загрузка...';
-                                                }
-                                                return daysOnWeek[currentDay - 1];
-                                            })()}
+                                            {daysOnWeek[currentDay - 1]}
                                             <br />
                                             <span className="text-sm text-gray-500">
-                                                {(() => {
-                                                    console.log('Context weeks:', context?.weeks);
-                                                    if (!context?.weeks?.from) {
-                                                        console.error('context.weeks.from не определен!');
-                                                        return 'Загрузка...';
-                                                    }
-                                                    return new Date(getDateFromDay(new Date(context.weeks.from), currentDay))
-                                                        .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-                                                })()}
+                                                {context?.weeks?.from && new Date(getDateFromDay(new Date(context.weeks.from), currentDay))
+                                                    .toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                                             </span>
                                         </TableHead>
                                         )
@@ -418,4 +335,4 @@ export default function TimeTableAdmin({ data, weekRange, user }) {
             )}
         </section>
     );
-}
+} 

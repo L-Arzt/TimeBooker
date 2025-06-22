@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/app/libs/prisma';
 
 // Типы уведомлений
 export const NotificationType = {
@@ -30,111 +28,35 @@ export const NotificationType = {
 
 // Функция для отправки уведомления в Telegram
 async function sendTelegramNotification(telegramId, message) {
-    console.log('=== Telegram Notification Debug ===');
-    console.log('1. Initial check:', {
-        telegramId,
-        hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
-        tokenLength: process.env.TELEGRAM_BOT_TOKEN?.length,
-        tokenStart: process.env.TELEGRAM_BOT_TOKEN?.substring(0, 5) + '...'
-    });
-
-    if (!telegramId) {
-        console.log('❌ Telegram notification skipped: No telegramId provided');
-        return;
-    }
-
-    if (!process.env.TELEGRAM_BOT_TOKEN) {
-        console.log('❌ Telegram notification skipped: No TELEGRAM_BOT_TOKEN in environment variables');
-        return;
-    }
-
+    if (!telegramId || !process.env.TELEGRAM_BOT_TOKEN) return;
     try {
         const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-        console.log('2. Sending request to:', url);
-
-        const requestBody = {
-            chat_id: telegramId,
-            text: message,
-            parse_mode: 'HTML'
-        };
-        console.log('3. Request body:', requestBody);
-
-        const response = await fetch(url, {
+        await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: telegramId, text: message, parse_mode: 'HTML' }),
         });
-
-        const responseData = await response.json();
-        console.log('4. Telegram API response:', responseData);
-
-        if (!response.ok) {
-            throw new Error(`Failed to send Telegram notification: ${JSON.stringify(responseData)}`);
-        }
-
-        console.log('✅ Telegram notification sent successfully');
-    } catch (error) {
-        console.error('❌ Error sending Telegram notification:', error);
-        throw error;
-    }
+    } catch (error) { console.error('Telegram error:', error); }
 }
 
 // Создание уведомления
 export async function createNotification(userId, type, title, message) {
-    try {
-        console.log('=== Creating Notification ===');
-        console.log('1. Input data:', { userId, type, title, message });
-
-        const notification = await prisma.notification.create({
-            data: {
-                userId,
-                type,
-                title,
-                message,
-                isRead: false
-            }
-        });
-        console.log('2. Notification created in database:', notification);
-
-        // Получаем настройки пользователя
-        const userSettings = await prisma.settings.findUnique({
-            where: { userId }
-        });
-        console.log('3. User settings:', userSettings);
-
-        // Отправляем уведомление в Telegram, если настроено
-        if (userSettings?.telegramId) {
-            console.log('4. Found telegramId, attempting to send notification');
-            await sendTelegramNotification(userSettings.telegramId, message);
-        } else {
-            console.log('4. No telegramId found in user settings');
-        }
-
-        return notification;
-    } catch (error) {
-        console.error('❌ Error creating notification:', error);
-        throw error;
+    const notification = await prisma.notification.create({
+        data: { userId, type, title, message, isRead: false }
+    });
+    const userSettings = await prisma.settings.findUnique({ where: { userId } });
+    if (userSettings?.telegramId) {
+        await sendTelegramNotification(userSettings.telegramId, message);
     }
+    return notification;
 }
 
 // Получение непрочитанных уведомлений
 export async function getUnreadNotifications(userId) {
-    try {
-        return await prisma.notification.findMany({
-            where: {
-                userId,
-                isRead: false
-            },
-            orderBy: {
-                createdAt: 'desc'
-            }
-        });
-    } catch (error) {
-        console.error('Error getting unread notifications:', error);
-        throw error;
-    }
+    return await prisma.notification.findMany({
+        where: { userId, isRead: false },
+        orderBy: { createdAt: 'desc' }
+    });
 }
 
 // Обновление настроек пользователя
@@ -158,97 +80,58 @@ export async function updateUserSettings(userId, settings) {
 
 // Уведомления о бронировании
 export async function notifyBookingCreated(booking) {
-    const { userId, specialistId, date, time } = booking;
-
-    // Уведомление для клиента
-    await createNotification(
-        userId,
-        NotificationType.BOOKING_CREATED,
-        'Новое бронирование',
-        `Ваше бронирование на ${date} в ${time} успешно создано`
-    );
-
-    // Уведомление для специалиста
-    await createNotification(
-        specialistId,
-        NotificationType.SPECIALIST_NEW_BOOKING,
-        'Новое бронирование',
-        `У вас новое бронирование на ${date} в ${time}`
-    );
-
-    // Уведомление для менеджера
-    const manager = await prisma.users.findFirst({
-        where: { role: 'MANAGER' }
-    });
-    if (manager) {
-        await createNotification(
-            manager.id,
-            NotificationType.MANAGER_NEW_BOOKING,
-            'Новое бронирование',
-            `Создано новое бронирование на ${date} в ${time}`
-        );
+    const { userId, specialistId, date, time, adminIds } = booking;
+    await createNotification(userId, NotificationType.BOOKING_CREATED, 'Новое бронирование', `Ваше бронирование на ${date} в ${time} успешно создано`);
+    if (specialistId) {
+        await createNotification(specialistId, NotificationType.SPECIALIST_NEW_BOOKING, 'Новое бронирование', `У вас новое бронирование на ${date} в ${time}`);
+    }
+    if (adminIds && Array.isArray(adminIds)) {
+        for (const adminId of adminIds) {
+            await createNotification(adminId, NotificationType.MANAGER_NEW_BOOKING, 'Новое бронирование', `Создано новое бронирование на ${date} в ${time}`);
+        }
+    } else {
+        const manager = await prisma.users.findFirst({ where: { role: 'admin' } });
+        if (manager) {
+            await createNotification(manager.id, NotificationType.MANAGER_NEW_BOOKING, 'Новое бронирование', `Создано новое бронирование на ${date} в ${time}`);
+        }
     }
 }
 
 // Уведомления об отмене бронирования
 export async function notifyBookingCancelled(booking) {
-    const { userId, specialistId, date, time } = booking;
-
-    await createNotification(
-        userId,
-        NotificationType.BOOKING_CANCELLED,
-        'Бронирование отменено',
-        `Ваше бронирование на ${date} в ${time} было отменено`
-    );
-
-    await createNotification(
-        specialistId,
-        NotificationType.SPECIALIST_BOOKING_CANCELLED,
-        'Бронирование отменено',
-        `Бронирование на ${date} в ${time} было отменено`
-    );
-
-    const manager = await prisma.users.findFirst({
-        where: { role: 'MANAGER' }
-    });
-    if (manager) {
-        await createNotification(
-            manager.id,
-            NotificationType.MANAGER_BOOKING_CANCELLED,
-            'Бронирование отменено',
-            `Бронирование на ${date} в ${time} было отменено`
-        );
+    const { userId, specialistId, date, time, adminIds } = booking;
+    await createNotification(userId, NotificationType.BOOKING_CANCELLED, 'Бронирование отменено', `Ваше бронирование на ${date} в ${time} отменено`);
+    if (specialistId) {
+        await createNotification(specialistId, NotificationType.SPECIALIST_BOOKING_CANCELLED, 'Бронирование отменено', `Бронирование на ${date} в ${time} отменено`);
+    }
+    if (adminIds && Array.isArray(adminIds)) {
+        for (const adminId of adminIds) {
+            await createNotification(adminId, NotificationType.MANAGER_BOOKING_CANCELLED, 'Бронирование отменено', `Бронирование на ${date} в ${time} отменено`);
+        }
+    } else {
+        const manager = await prisma.users.findFirst({ where: { role: 'admin' } });
+        if (manager) {
+            await createNotification(manager.id, NotificationType.MANAGER_BOOKING_CANCELLED, 'Бронирование отменено', `Бронирование на ${date} в ${time} отменено`);
+        }
     }
 }
 
 // Уведомления об изменении бронирования
 export async function notifyBookingUpdated(booking) {
-    const { userId, specialistId, date, time } = booking;
-
-    await createNotification(
-        userId,
-        NotificationType.BOOKING_UPDATED,
-        'Бронирование изменено',
-        `Ваше бронирование изменено на ${date} в ${time}`
-    );
-
-    await createNotification(
-        specialistId,
-        NotificationType.SPECIALIST_BOOKING_UPDATED,
-        'Бронирование изменено',
-        `Бронирование изменено на ${date} в ${time}`
-    );
-
-    const manager = await prisma.users.findFirst({
-        where: { role: 'MANAGER' }
-    });
-    if (manager) {
-        await createNotification(
-            manager.id,
-            NotificationType.MANAGER_BOOKING_UPDATED,
-            'Бронирование изменено',
-            `Бронирование изменено на ${date} в ${time}`
-        );
+    const { userId, specialistId, date, time, adminIds } = booking;
+    await createNotification(userId, NotificationType.BOOKING_UPDATED, 'Бронирование изменено', `Ваше бронирование на ${date} в ${time} изменено`);
+    if (specialistId) {
+        await createNotification(specialistId, NotificationType.SPECIALIST_BOOKING_UPDATED, 'Бронирование изменено', `Бронирование на ${date} в ${time} изменено`);
+    }
+    if (adminIds && Array.isArray(adminIds)) {
+        for (const adminId of adminIds) {
+            await createNotification(adminId, NotificationType.MANAGER_BOOKING_UPDATED, 'Бронирование изменено', `Бронирование на ${date} в ${time} изменено`);
+        }
+    } else {
+        const manager = await prisma.users.findFirst({ where: { role: 'admin' } });
+        if (manager) {
+            await createNotification(manager.id, NotificationType.MANAGER_BOOKING_UPDATED, 'Бронирование изменено', `Бронирование на ${date} в ${time} изменено`);
+        }
     }
 }
 

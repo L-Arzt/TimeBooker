@@ -14,7 +14,9 @@ export async function GET() {
         const user = await prisma.users.findUnique({
             where: { id: session.user.id },
             include: {
-                timetables: true,
+                timetables: {
+                    include: { business: true }
+                },
                 settings: true
             }
         });

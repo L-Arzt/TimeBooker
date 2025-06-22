@@ -27,11 +27,17 @@ export async function createLesson(prevState, formData) {
     return { message: 'Некорректная дата!' };
   }
 
+  const slug = data.slug;
+  let business = null;
+  if (slug) {
+    business = await prisma.business.findUnique({ where: { slug } });
+  }
   const lesson = await prisma.timetable.findFirst({
     where: {
       date: parsedDate,
       numberLesson: Number(data.lessonNum),
-      // weekDay: Number(data.lessonDay), // если нужно
+      weekDay: Number(data.lessonDay),
+      businessId: business ? business.id : null,
     },
   });
 

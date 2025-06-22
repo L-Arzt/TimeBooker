@@ -1,73 +1,38 @@
 import { NextResponse } from 'next/server';
 import { createNotification, NotificationType } from '@/app/libs/notificationService';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-const testNotifications = [
-    {
+const testNotifications = {
+    user: {
         type: NotificationType.BOOKING_CREATED,
-        title: 'Новое бронирование',
+        title: 'Тест: Новое бронирование',
         message: 'Тест: Ваше бронирование успешно создано',
     },
-    {
-        type: NotificationType.BOOKING_CANCELLED,
-        title: 'Бронирование отменено',
-        message: 'Тест: Ваше бронирование было отменено',
+    admin: {
+        type: NotificationType.MANAGER_NEW_BOOKING,
+        title: 'Тест: Новое бронирование (админ)',
+        message: 'Тест: Для администратора: создано новое бронирование',
     },
-    {
-        type: NotificationType.BOOKING_UPDATED,
-        title: 'Бронирование изменено',
-        message: 'Тест: Ваше бронирование изменено',
+    business: {
+        type: NotificationType.SPECIALIST_NEW_BOOKING,
+        title: 'Тест: Новое бронирование (бизнес)',
+        message: 'Тест: Для владельца бизнеса: новое бронирование',
     },
-    {
-        type: NotificationType.BOOKING_REMINDER_DAY,
-        title: 'Напоминание о бронировании',
-        message: 'Тест: Напоминаем о завтрашнем бронировании',
-    },
-    {
-        type: NotificationType.SPECIALIST_SCHEDULE_UPDATED,
-        title: 'Изменение расписания',
-        message: 'Тест: Ваше расписание было изменено',
-    },
-    {
-        type: NotificationType.SPECIALIST_SERVICES_UPDATED,
-        title: 'Изменение услуг',
-        message: 'Тест: Список ваших услуг был обновлён',
-    },
-    {
-        type: NotificationType.MANAGER_LOW_LOAD,
-        title: 'Низкая загрузка специалиста',
-        message: 'Тест: У специалиста низкая загрузка на следующую неделю',
-    },
-];
+};
 
 export async function POST(request) {
     try {
-        // Находим первого пользователя с заполненным telegramId
-        const userWithTelegram = await prisma.settings.findFirst({
-            where: {
-                telegramId: { not: null },
-            },
-            include: { user: true },
-        });
-
-        if (!userWithTelegram || !userWithTelegram.userId) {
-            return NextResponse.json({ error: 'Нет пользователя с telegramId' }, { status: 404 });
+        const { userId, type } = await request.json();
+        if (!userId || !type || !testNotifications[type]) {
+            return NextResponse.json({ error: 'Некорректные параметры' }, { status: 400 });
         }
-
-        const results = [];
-        for (const notif of testNotifications) {
-            const notification = await createNotification(
-                userWithTelegram.userId,
-                notif.type,
-                notif.title,
-                notif.message
-            );
-            results.push({ type: notif.type, notification });
-        }
-
-        return NextResponse.json({ success: true, userId: userWithTelegram.userId, results });
+        const notif = testNotifications[type];
+        const notification = await createNotification(
+            userId,
+            notif.type,
+            notif.title,
+            notif.message
+        );
+        return NextResponse.json({ success: true, notification });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

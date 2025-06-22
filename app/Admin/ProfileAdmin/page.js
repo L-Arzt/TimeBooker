@@ -1,7 +1,7 @@
-import { getServerSession } from 'next-auth';
-import { NextAuthOptions } from '@/config';
 import ProfileAdmin from './ProfileAdmin';
-import prisma from '@/app/libs/prisma';
+import { notFound } from 'next/navigation';
+import { getAdminSessionAndUser } from '@/app/libs/getAdminSessionProfile';
+import Link from 'next/link';
 
 export default async function ProfileAdminPage() {
     const session = await getServerSession(NextAuthOptions);

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import TimeTable from './TimeTable';
+import { getSessionAndUser } from '@/app/libs/getSessionProfile';
 
 export default async function TimeTablePage() {
   const prisma = new PrismaClient({});
@@ -39,5 +40,6 @@ export default async function TimeTablePage() {
   }
 
   const data = await getData();
-  return <TimeTable data={data} weekRange={weekRange} />;
+  const { user } = await getSessionAndUser();
+  return <TimeTable data={data} weekRange={weekRange} user={user} />;
 }
