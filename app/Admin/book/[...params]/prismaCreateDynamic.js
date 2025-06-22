@@ -21,15 +21,19 @@ export async function createLesson(prevState, formData) {
 
   const userId = session.user.id;
 
+  // Проверяем дату
+  const parsedDate = new Date(data.date);
+  if (isNaN(parsedDate.getTime())) {
+    return { message: 'Некорректная дата!' };
+  }
+
   const lesson = await prisma.timetable.findFirst({
     where: {
-      date: new Date(data.date),
+      date: parsedDate,
       numberLesson: Number(data.lessonNum),
-      // weekDay: Number(data.weekDay),
+      // weekDay: Number(data.lessonDay), // если нужно
     },
   });
-
-  console.log(lesson);
 
   if (lesson) {
     return {
@@ -43,7 +47,7 @@ export async function createLesson(prevState, formData) {
       weekDay: Number(data.lessonDay),
       studentName: data.studentName,
       description: data.description,
-      date: new Date(data.date),
+      date: parsedDate,
       typeLearning: data.typeLearning,
       booked: true,
       userId: userId,
@@ -51,30 +55,6 @@ export async function createLesson(prevState, formData) {
   });
 
   if (createLesson) {
-    // Отправляем уведомление о создании бронирования
-    try {
-      const formattedDate = new Date(data.date).toLocaleDateString('ru-RU', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-      });
-
-      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          type: 'booking_created',
-          title: 'Новое бронирование',
-          message: `Вы забронировали занятие на ${formattedDate}, ${data.typeLearning}. Время: ${data.lessonNum} пара.`,
-        }),
-      });
-    } catch (error) {
-      console.error('Error sending notification:', error);
-    }
-
     redirect('/Admin/TimeTableAdmin');
     return {
       message: 'Готово',

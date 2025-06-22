@@ -141,7 +141,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                                             <p className="text-gray-600">{lesson.description}</p>
                                                         </div>
                                                         <div>
-                                                            <Link href={`/Admin/book/UpdatePage/${lesson.id}`}>
+                                                            <Link href={`/User/book/UpdatePage/${lesson.id}`}>
                                                                 <button className="flex items-center justify-center bg-[#FF9100] w-[35px] h-[35px] rounded-md text-white">
                                                                     <Image className='w-8 h-8 m-1 bg-[#FF9100] rounded-lg p-1' src={edit} alt='editImg' />
                                                                 </button>
@@ -164,7 +164,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                         <div className='flex w-[140px] h-[70px] items-center justify-center flex-col gap-2'>
                                             <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                             <Link
-                                                href={`/Admin/book/${i}/${dayIndex + 1}/${getDateFromDay(
+                                                href={`/User/book/${i}/${dayIndex + 1}/${getDateFromDay(
                                                     new Date(context?.weeks?.from),
                                                     dayIndex + 1
                                                 )}`}
@@ -193,7 +193,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                                         <p className="text-gray-600">{lesson.description}</p>
                                                     </div>
                                                     <div>
-                                                        <Link href={`/Admin/book/UpdatePage/${lesson.id}`}>
+                                                        <Link href={`/User/book/UpdatePage/${lesson.id}`}>
                                                             <button className="flex items-center justify-center bg-[#FF9100] w-[35px] h-[35px] rounded-md text-white">
                                                                 <Image className='w-8 h-8 m-1 bg-[#FF9100] rounded-lg p-1' src={edit} alt='editImg' />
                                                             </button>
@@ -220,7 +220,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                                 <div className='flex w-[400px] h-[70px] items-center justify-center flex-col gap-2'>
                                     <h1 className='text-[#7E7E7E]'>Свободно</h1>
                                     <Link
-                                        href={`/Admin/book/${i}/${currentDay}/${getDateFromDay(
+                                        href={`/User/book/${i}/${currentDay}/${getDateFromDay(
                                             new Date(context?.weeks?.from),
                                             currentDay
                                         )}`}
