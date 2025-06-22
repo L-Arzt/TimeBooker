@@ -82,7 +82,7 @@ export default function BusinessPage({ business }) {
                 </header>
 
                 <article className="flex items-center justify-center gap-[50px] m-20 flex-wrap">
-                    {business.features.map((feature, index) => (
+                    {(business.features || []).map((feature, index) => (
                         <AboutMeCard
                             key={index}
                             src={aboutmecardimg1}
@@ -125,7 +125,7 @@ export default function BusinessPage({ business }) {
                 </header>
 
                 <article className="flex items-center justify-center gap-[50px] m-20 flex-wrap">
-                    {business.prices.map((price, index) => (
+                    {(business.prices || []).map((price, index) => (
                         <PriceCard
                             key={index}
                             src={aboutmecardimg1}
@@ -166,11 +166,11 @@ export default function BusinessPage({ business }) {
 
                 <div className="bg-gradient-to-r from-[#FFF3E0] to-[#FFECB3] rounded-3xl p-10 max-w-4xl relative z-10">
                     <h2 className="text-[#E74C3C] text-3xl font-bold mb-6 text-center">{business.promo.title}</h2>
-                    <p className="text-[#5D6D7E] text-xl mb-6 text-center" dangerouslySetInnerHTML={{ __html: business.promo.description }} />
+                    <p className="text-[#5D6D7E] text-xl mb-6 text-center" dangerouslySetInnerHTML={{ __html: (business.promo && business.promo.description) || '' }} />
                     <div className="flex justify-center">
                         <Link href={`/business/${business.slug}/user/timetable`}>
                             <button className="bg-[#E74C3C] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#C0392B] transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                                {business.promo.buttonText}
+                                {(business.promo && business.promo.buttonText) || 'Записаться'}
                             </button>
                         </Link>
                     </div>

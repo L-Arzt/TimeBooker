@@ -10,259 +10,130 @@ import bookimg from '../../../public/headerblockbook.png'
 import aboutmeimgmain from '../../../public/aboutmeimgmain.png'
 import aboutmecardimg1 from '../../../public/aboutmecardimg1.png'
 import mainImg from '../../../public/reviewsMainimg.png'
-import CardImg1 from '../../../public/reviewsCardimg1.png'
 import saleLeft from '../../../public/saleblockleftimg.png'
 import saleRight from '../../../public/saleblockrightimg.png'
-import saleBook from '../../../public/saleblockbook.png'
-
-import TimeBookerHeader from '../../components/TimeBookerHeader'
-import TimeBookerFooter from '../../components/TimeBookerFooter'
 
 import ImageWithBorder from '../../elemPage/imagewithborder'
 import AboutMeCard from '../../elemPage/aboutmeblockcard'
-import ReviewsCard from '../../elemPage/reviewscard'
 import PriceCard from '../../elemPage/priceblockcard'
-import ContactForm from './ContactForm'
-import ReviewsCarousel from './ReviewsCarousel'
+import ReviewsSlider from './ReviewsSlider';
+import PromoBlock from './PromoBlock';
 
-export default async function BusinessPage({ params }) {
-    // Получаем данные бизнеса по slug
+export default async function BusinessDynamicPage({ params }) {
     const business = await getBusinessBySlug(params.slug);
-
-    // Если бизнес не найден, показываем 404
-    if (!business) {
-        notFound();
-    }
+    if (!business) notFound();
+    const features = business.features ? JSON.parse(business.features) : [];
+    const prices = business.prices ? JSON.parse(business.prices) : [];
+    const promo = business.promo ? JSON.parse(business.promo) : {};
+    const reviews = business.reviews ? JSON.parse(business.reviews) : [
+        { name: "Мария", text: "Отличный преподаватель! С детьми очень внимательна и дружелюбна, находит индивидуальный подход, чтобы заинтересовать ребенка занятиями. И как результат - есть прогресс! Рады, что решили заниматься с Ульяной.", rating: 5 },
+        { name: "Title", text: "Description", rating: 3 },
+        { name: "Title", text: "Description", rating: 3 },
+    ];
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Главный баннер */}
-            <section className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl overflow-hidden mb-12">
-                <div className="absolute inset-0 opacity-20 bg-pattern"></div>
-                <div className="relative z-10 py-16 px-8 md:px-16 flex flex-col items-center text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-6">{business.name}</h1>
-                    <p className="text-xl max-w-2xl mb-8">{business.description || `Добро пожаловать на страницу ${business.name}`}</p>
-                    <div className="flex flex-wrap gap-4 justify-center">
-                        <Link
-                            href={`/business/${business.slug}/user/timetable`}
-                            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-                        >
-                            Посмотреть расписание
-                        </Link>
-                    </div>
-                </div>
+        <section className="relative">
+            <Image className="absolute w-full -top-[5%] -z-30" src={bgMain} alt="bg" />
+            <section className="flex items-center justify-around my-10  relative flex-wrap">
+                <header>
+                    <h1 className="text-[#374B5C] text-[33px] py-5">{business.type}</h1>
+                    <h1 className="text-[#374B5C] text-[33px] py-5">{business.name}</h1>
+                    <p className="text-[20px] py-5">{business.tagline || business.description}</p>
+                    <button className="flex border items-center justify-center border-[#FF9100] rounded-2xl bg-[#FF9100] py-2 px-8 ">
+                        <Link href='/#pricesBlock'><h1 className="text-white">Узнать цены</h1></Link>
+                    </button>
+                </header>
+                <figure className="relative w-[650px] h-[500px] mb-10">
+                    <ImageWithBorder
+                        src={img1}
+                        alt="Logo image"
+                        width={400}
+                        height={400}
+                        borderRadius={20}
+                        imgStyle="absolute  z-40 top-[80px] left-[200px] "
+                        borderStyle="absolute z-20 top-[120px] left-[240px] w-[400px] h-[400px] border border-[#FF9100] rounded-3xl"
+                    />
+                    <ImageWithBorder
+                        src={img2}
+                        alt="Logo image"
+                        width={400}
+                        height={400}
+                        imgStyle="absolute z-10 blur-[2px] "
+                        borderStyle="absolute top-10 left-10 z-0 w-[400px] h-[400px] border border-[#FF9100] rounded-3xl"
+                    />
+                </figure>
+                <figure className="absolute bottom-0 left-0">
+                    <Image src={bookimg} alt="Logo image" />
+                </figure>
             </section>
-
-            {/* О нас */}
-            <section className="mb-16" id="about">
-                <h2 className="text-3xl font-bold mb-6 text-center">О нас</h2>
-                <div className="bg-white rounded-lg shadow-md p-8">
-                    <p className="text-gray-700 mb-4">
-                        {business.description || `${business.name} предлагает высококачественные услуги для наших клиентов. Мы стремимся обеспечить максимальное удобство и качество обслуживания.`}
-                    </p>
-                    <p className="text-gray-700">
-                        Наша система онлайн-бронирования позволяет вам легко записываться на удобное время, управлять своими записями и получать напоминания о предстоящих встречах.
-                    </p>
-                </div>
+            <section>
+                <header className="flex items-center justify-center flex-col">
+                    <figure>
+                        <Image src={aboutmeimgmain} alt="Logo image" />
+                    </figure>
+                    <h1 className="text-[#A56714] text-[39px]">О нас</h1>
+                    {business.level && <p className="text-[#A56714] text-[22px]">Уровень: {business.level}</p>}
+                    <p className="text-[#A56714] text-[22px]">{business.about}</p>
+                </header>
+                <article className="flex items-center justify-center gap-[50px] m-20 flex-wrap">
+                    {features.map((feature, idx) => (
+                        <AboutMeCard
+                            key={idx}
+                            src={aboutmecardimg1}
+                            alt="Card image"
+                            width={90}
+                            height={120}
+                            cardtexth={feature.title}
+                            cardtextp={feature.description}
+                        />
+                    ))}
+                </article>
             </section>
-
-            {/* Отзывы */}
-            <section className="mb-16" id="reviews">
-                <h2 className="text-3xl font-bold mb-6 text-center">Отзывы</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl mr-4">
-                                АК
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Анна К.</h3>
-                                <div className="flex text-yellow-400">
-                                    ★★★★★
-                                </div>
-                            </div>
-                        </div>
-                        <p className="text-gray-700">Отличный сервис! Легко записаться и всегда вовремя напоминают о встрече.</p>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-xl mr-4">
-                                МС
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Михаил С.</h3>
-                                <div className="flex text-yellow-400">
-                                    ★★★★☆
-                                </div>
-                            </div>
-                        </div>
-                        <p className="text-gray-700">Очень удобно бронировать время онлайн, не нужно звонить и ждать ответа.</p>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-xl mr-4">
-                                ЕВ
-                            </div>
-                            <div>
-                                <h3 className="font-semibold">Елена В.</h3>
-                                <div className="flex text-yellow-400">
-                                    ★★★★★
-                                </div>
-                            </div>
-                        </div>
-                        <p className="text-gray-700">Профессиональный подход и внимательное отношение к клиентам. Рекомендую!</p>
-                    </div>
-                </div>
+            <section id="reviewsBlock">
+                <article className="flex items-center justify-center flex-col">
+                    <header className="flex items-center justify-center flex-col my-5">
+                        <figure>
+                            <Image src={mainImg} alt="img header reviews" />
+                        </figure>
+                        <h1 className="text-[#FF9100] text-[36px]">Отзывы</h1>
+                    </header>
+                    <ReviewsSlider reviews={reviews} />
+                </article>
             </section>
-
-            {/* Цены */}
-            <section className="mb-16" id="prices">
-                <h2 className="text-3xl font-bold mb-6 text-center">Цены</h2>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="bg-blue-600 text-white py-4 px-6">
-                            <h3 className="text-xl font-bold">Стандарт</h3>
-                            <p className="text-blue-100">Базовый пакет услуг</p>
-                        </div>
-                        <div className="p-6">
-                            <div className="text-3xl font-bold mb-4">1500 ₽</div>
-                            <ul className="space-y-2 mb-6">
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Индивидуальный подход</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Онлайн-бронирование</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Напоминания о записи</span>
-                                </li>
-                            </ul>
-                            <Link
-                                href={`/business/${business.slug}/user/timetable`}
-                                className="block text-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors"
-                            >
-                                Забронировать
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="bg-indigo-600 text-white py-4 px-6">
-                            <h3 className="text-xl font-bold">Премиум</h3>
-                            <p className="text-indigo-100">Расширенный пакет</p>
-                        </div>
-                        <div className="p-6">
-                            <div className="text-3xl font-bold mb-4">2500 ₽</div>
-                            <ul className="space-y-2 mb-6">
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Все услуги Стандарт</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Приоритетное обслуживание</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Дополнительные материалы</span>
-                                </li>
-                            </ul>
-                            <Link
-                                href={`/business/${business.slug}/user/timetable`}
-                                className="block text-center bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                            >
-                                Забронировать
-                            </Link>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                        <div className="bg-purple-600 text-white py-4 px-6">
-                            <h3 className="text-xl font-bold">VIP</h3>
-                            <p className="text-purple-100">Максимальный комфорт</p>
-                        </div>
-                        <div className="p-6">
-                            <div className="text-3xl font-bold mb-4">4000 ₽</div>
-                            <ul className="space-y-2 mb-6">
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Все услуги Премиум</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Персональный менеджер</span>
-                                </li>
-                                <li className="flex items-center">
-                                    <span className="text-green-500 mr-2">✓</span>
-                                    <span>Гибкое расписание</span>
-                                </li>
-                            </ul>
-                            <Link
-                                href={`/business/${business.slug}/user/timetable`}
-                                className="block text-center bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition-colors"
-                            >
-                                Забронировать
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+            <section id="pricesBlock" className="mt-20">
+                <header className="flex items-center justify-center flex-col">
+                    <figure>
+                        <Image src={aboutmeimgmain} alt="Logo image" />
+                    </figure>
+                    <h1 className="text-[#A56714] text-[39px]">Цены на занятия</h1>
+                </header>
+                <article className="flex items-center justify-center gap-[50px] m-20 flex-wrap">
+                    {prices.map((price, idx) => (
+                        <PriceCard
+                            key={idx}
+                            src={aboutmecardimg1}
+                            alt="Card image"
+                            width={90}
+                            height={120}
+                            cardtextmain={price.title}
+                            cardtextdesc={price.desc1}
+                            cardtextdesc2={price.desc2}
+                            cardtextprice={price.price}
+                        />
+                    ))}
+                </article>
             </section>
-
-            {/* Контакты */}
-            <section className="mb-16" id="contact">
-                <h2 className="text-3xl font-bold mb-6 text-center">Контакты</h2>
-                <div className="bg-white rounded-lg shadow-md p-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Свяжитесь с нами</h3>
-                            <div className="space-y-3">
-                                <p className="flex items-center">
-                                    <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
-                                        📞
-                                    </span>
-                                    <span>+7 (999) 123-45-67</span>
-                                </p>
-                                <p className="flex items-center">
-                                    <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
-                                        ✉️
-                                    </span>
-                                    <span>info@{business.slug}.ru</span>
-                                </p>
-                                <p className="flex items-center">
-                                    <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
-                                        📍
-                                    </span>
-                                    <span>г. Москва, ул. Примерная, д. 123</span>
-                                </p>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-semibold mb-4">Часы работы</h3>
-                            <table className="w-full">
-                                <tbody>
-                                    <tr className="border-b">
-                                        <td className="py-2">Понедельник - Пятница</td>
-                                        <td className="py-2 text-right">9:00 - 20:00</td>
-                                    </tr>
-                                    <tr className="border-b">
-                                        <td className="py-2">Суббота</td>
-                                        <td className="py-2 text-right">10:00 - 18:00</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-2">Воскресенье</td>
-                                        <td className="py-2 text-right">Выходной</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+            <section className="relative flex items-center justify-center m-20 ">
+                <figure className="">
+                    <div className=" absolute left-0 top-0 -z-50">
+                        <Image src={saleLeft} alt="Decoration left sale block image" />
                     </div>
-                </div>
+                    <div className="absolute right-0 bottom-0 -z-50">
+                        <Image src={saleRight} alt="Decoration right sale block image" />
+                    </div>
+                </figure>
+                <PromoBlock promo={promo} />
             </section>
-        </div>
+        </section>
     );
 }

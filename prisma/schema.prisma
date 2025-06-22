@@ -36,7 +36,16 @@ model Business {
   ownerId     Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  
+
+  tagline     String?
+  about       String?
+  level       String?
+  features    String?
+  prices      String?
+  promo       String?
+  contacts    String?
+  reviews     String?
+
   owner       users     @relation(fields: [ownerId], references: [id])
   timetables  timetable[]
 }
