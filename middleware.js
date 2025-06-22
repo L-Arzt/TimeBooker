@@ -1,24 +1,36 @@
 import { NextResponse } from 'next/server';
 import withAuth from 'next-auth/middleware';
-export default withAuth(function middleware(req) {
-    // if (req.nextUrl.pathname === '/login') {
-    //     return;
-    // }
-    // if (
-    //     req.nextUrl.pathname.startsWith('/admin') &&
-    //     req.nextauth.token.role !== 'admin'
-    // ) {
-    //     return NextResponse.redirect(`${req.nextUrl.origin}/login`);
-    // }
 
-    if (req.nextUrl.pathname === '/login') {
+export default withAuth(function middleware(req) {
+    // Allow access to root path and login
+    if (req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/login') {
         return;
     }
-    if (req.nextUrl.pathname !== '/' && !req.nextauth.token) {
-        return NextResponse.redirect(`${req.nextUrl.origin}/login`);
+
+    // Check role-based access
+    const rolePermissions = {
+        user: ['/User'],
+        specialist: ['/User', '/Admin/book'],
+        manager: ['/User', '/Admin/book', '/Admin/TimeTableAdmin'],
+        admin: ['/User', '/Admin']
+    };
+
+    const userRole = req.nextauth.token?.role;
+    const currentPath = req.nextUrl.pathname;
+
+    // Check if user has permission for the current path
+    const hasPermission = rolePermissions[userRole]?.some(allowedPath =>
+        currentPath.startsWith(allowedPath)
+    );
+
+    if (!hasPermission) {
+        return NextResponse.redirect(new URL('/', req.url));
     }
 });
 
 export const config = {
-    matcher: ['/User/TimeTable'],
+    matcher: [
+        '/User/:path*',
+        '/Admin/:path*'
+    ]
 };

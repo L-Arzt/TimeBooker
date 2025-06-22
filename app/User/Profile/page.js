@@ -1,10 +1,10 @@
-import { getSessionAndUser } from '@/app/libs/getSessionProfile';
+import { getServerSession } from 'next-auth';
 import Profile from './Profile';
 
 export default async function Page() {
-  const { user, lessons } = await getSessionAndUser();
+  const session = await getServerSession();
 
   return (
-    <Profile user={user} lessons={lessons} />
+    <Profile session={session} />
   );
 }

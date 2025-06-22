@@ -10,11 +10,11 @@ export default function ThemeProvider({ children, session }) {
     const pathname = usePathname();
     return (
         <ThemeContext.Provider value={{ weeks, setWeeks }}>
-            {/* {session && (pathname === '/User/TimeTable' || pathname === '/Admin/TimeTableAdmin') && (
+            {session && (pathname === '/User/TimeTable' || pathname === '/Admin/TimeTableAdmin') && (
                 <div>
                     <MenuWeek />
                 </div>
-            )} */}
+            )}
             {children}
         </ThemeContext.Provider>
     )

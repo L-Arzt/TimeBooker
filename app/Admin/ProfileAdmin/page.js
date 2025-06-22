@@ -1,10 +1,29 @@
-import { getAdminSessionAndUser } from '@/app/libs/getAdminSessionProfile';
+import { getServerSession } from 'next-auth';
+import { NextAuthOptions } from '@/config';
 import ProfileAdmin from './ProfileAdmin';
+import prisma from '@/app/libs/prisma';
 
-export default async function Page() {
-    const { user, lessons } = await getAdminSessionAndUser();
+export default async function ProfileAdminPage() {
+    const session = await getServerSession(NextAuthOptions);
 
-    return (
-        <ProfileAdmin user={user} lessons={lessons} />
-    );
+    if (!session) {
+        return null;
+    }
+
+    const user = await prisma.users.findUnique({
+        where: {
+            id: session.user.id
+        }
+    });
+
+    const lessons = await prisma.timetable.findMany({
+        where: {
+            userId: session.user.id
+        },
+        orderBy: {
+            date: 'asc'
+        }
+    });
+
+    return <ProfileAdmin user={user} lessons={lessons} />;
 }

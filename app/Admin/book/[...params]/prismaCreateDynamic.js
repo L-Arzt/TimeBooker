@@ -49,7 +49,32 @@ export async function createLesson(prevState, formData) {
       userId: userId,
     },
   });
+
   if (createLesson) {
+    // Отправляем уведомление о создании бронирования
+    try {
+      const formattedDate = new Date(data.date).toLocaleDateString('ru-RU', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/notifications/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          type: 'booking_created',
+          title: 'Новое бронирование',
+          message: `Вы забронировали занятие на ${formattedDate}, ${data.typeLearning}. Время: ${data.lessonNum} пара.`,
+        }),
+      });
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+
     redirect('/Admin/TimeTableAdmin');
     return {
       message: 'Готово',

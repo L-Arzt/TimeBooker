@@ -28,7 +28,8 @@ export default function ProfileAdmin({ user, lessons }) {
     const [selectedUserId, setSelectedUserId] = useState('all');
     const [showMoreFuture, setShowMoreFuture] = useState(false);
     const [showMorePast, setShowMorePast] = useState(false);
-
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleShowMoreFuture = () => {
         setShowMoreFuture(!showMoreFuture);
@@ -44,6 +45,31 @@ export default function ProfileAdmin({ user, lessons }) {
             setSelectedUserId("all");
         } else {
             setSelectedUserId(parseInt(value));
+        }
+    };
+
+    const createTestNotifications = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/notifications/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user.id }),
+            });
+
+            if (response.ok) {
+                setMessage('Тестовые уведомления успешно созданы');
+                setTimeout(() => setMessage(''), 3000);
+            } else {
+                throw new Error('Failed to create test notifications');
+            }
+        } catch (error) {
+            setMessage('Ошибка при создании тестовых уведомлений');
+            console.error('Error creating test notifications:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -85,13 +111,42 @@ export default function ProfileAdmin({ user, lessons }) {
                             </div>
                         </div>
 
+                        <div className='mt-10 border rounded-3xl p-6'>
+                            <div className='flex m-auto flex-col justify-center items-center'>
+                                <h2 className='font-bold text-center text-2xl mt-4'>Тестирование уведомлений</h2>
+                                <div className='space-y-4 mt-4'>
+                                    <p className='text-stone-500 text-center'>
+                                        Нажмите кнопку ниже, чтобы создать набор тестовых уведомлений.<br />
+                                        Это поможет проверить работу системы уведомлений.
+                                    </p>
+                                    
+                                    <button
+                                        onClick={createTestNotifications}
+                                        disabled={isLoading}
+                                        className={`px-6 py-4 bg-[#FF9100] text-white rounded-3xl hover:bg-orange-600 transition-colors ${
+                                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                    >
+                                        {isLoading ? 'Создание...' : 'Создать тестовые уведомления'}
+                                    </button>
+
+                                    {message && (
+                                        <div className={`mt-4 p-4 rounded-3xl ${
+                                            message.includes('ошибка') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                        }`}>
+                                            {message}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className='mt-10 border rounded-3xl'>
                             <div className='flex m-auto flex-col justify-center items-center'>
                                 <h2 className='font-bold text-center text-2xl mt-4'>Выберите пользователя</h2>
                                 <select onChange={handleUserChange} value={selectedUserId} className='m-4 p-3 border rounded-3xl '>
                                     <option value="all">Все пользователи</option>
                                     {lessons.map(lesson => (
-
                                         <option key={lesson.userId} value={lesson.userId}>
                                             {lesson.studentName}
                                         </option>
@@ -109,7 +164,7 @@ export default function ProfileAdmin({ user, lessons }) {
                                     <>
                                         {sortedFutureLessons.slice(0, showMoreFuture ? sortedFutureLessons.length : 3).map((lesson) => (
                                             <div key={lesson.id} className='flex flex-col m-5 p-5 gap-3 items-center justify-center border rounded-3xl w-3/12'>
-                                                <p><strong>Дата:</strong> {lesson.date.toLocaleDateString('ru-RU', TimeOptions)}</p>
+                                                <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString('ru-RU', TimeOptions)}</p>
                                                 <p><strong>Время:</strong> {TimeLessonS[lesson.numberLesson]}-{TimeLessonPo[lesson.numberLesson]}</p>
                                                 <p><strong>Студент:</strong> {lesson.studentName}</p>
                                                 <p><strong>Описание:</strong> {lesson.description}</p>
@@ -143,7 +198,7 @@ export default function ProfileAdmin({ user, lessons }) {
                                     <>
                                         {sortedPastLessons.slice(0, showMorePast ? sortedPastLessons.length : 3).map((lesson) => (
                                             <div key={lesson.id} className='flex flex-col m-5 p-5 gap-3 items-center justify-center border rounded-3xl w-3/12'>
-                                                <p><strong>Дата:</strong> {lesson.date.toLocaleDateString('ru-RU', TimeOptions)}</p>
+                                                <p><strong>Дата:</strong> {new Date(lesson.date).toLocaleDateString('ru-RU', TimeOptions)}</p>
                                                 <p><strong>Время:</strong> {TimeLessonS[lesson.numberLesson]}-{TimeLessonPo[lesson.numberLesson]}</p>
                                                 <p><strong>Студент:</strong> {lesson.studentName}</p>
                                                 <p><strong>Описание:</strong> {lesson.description}</p>
