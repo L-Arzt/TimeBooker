@@ -16,6 +16,7 @@ export default function Form({ isAdmin }) {
         setError('');
 
         const formData = new FormData(e.target);
+        // Если обычный пользователь регистрируется, всегда ставим роль user
         formData.append('role', isAdmin ? role : 'user');
         const response = await registerUser(formData);
 
@@ -98,7 +99,8 @@ export default function Form({ isAdmin }) {
                                     onChange={(e) => setRole(e.target.value)}
                                     className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#FF9100] focus:border-[#FF9100] outline-none transition-all duration-200"
                                 >
-                                    <option value="user">Ученик</option>
+                                    <option value="user">Клиент</option>
+                                    <option value="business">Бизнес</option>
                                     <option value="admin">Администратор</option>
                                 </select>
                             </div>

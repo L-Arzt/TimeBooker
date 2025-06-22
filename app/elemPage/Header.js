@@ -8,7 +8,7 @@ import NotificationCenter from '../components/NotificationCenter';
 
 export default async function HeaderElem() {
     const session = await getServerSession(NextAuthOptions);
-    const userRole = session?.user?.role || 'CLIENT';
+    const userRole = session?.user?.role || 'user';
 
     const getRoleBasedLinks = () => {
         switch (userRole) {
@@ -54,7 +54,7 @@ export default async function HeaderElem() {
                         </Link>
                     </>
                 );
-            default: // CLIENT
+            default: // user
                 return (
                     <>
                         <Link href='/User/TimeTable'>

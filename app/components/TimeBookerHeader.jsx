@@ -6,55 +6,41 @@ import { getServerSession } from 'next-auth';
 import { NextAuthOptions } from '@/config';
 import NotificationCenter from './NotificationCenter';
 
-export default async function TimeBookerHeader({ businessName, businessType, isMainPage = false }) {
+export default async function TimeBookerHeader({ businessName, businessType, isMainPage = false, businessSlug = 'englishpro' }) {
   const session = await getServerSession(NextAuthOptions);
-  const userRole = session?.user?.role || 'CLIENT';
+  const userRole = session?.user?.role || 'user';
 
   const getRoleBasedLinks = () => {
     switch (userRole) {
-      case 'SPECIALIST':
+      case 'admin':
         return (
           <>
-            <Link href='/Specialist/Schedule'>
-              <h3 className="text-[#FF9100]">Моё расписание</h3>
+            <Link href='/dashboard'>
+              <h3 className="text-[#FF9100]">Панель управления</h3>
             </Link>
-            <Link href='/Specialist/Services'>
-              <h3 className="text-[#FF9100]">Мои услуги</h3>
-            </Link>
-          </>
-        );
-      case 'MANAGER':
-        return (
-          <>
-            <Link href='/Manager/Schedule'>
+            <Link href={`/business/${businessSlug}/admin/timetable`}>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
-            <Link href='/Manager/Bookings'>
-              <h3 className="text-[#FF9100]">Бронирования</h3>
-            </Link>
-            <Link href='/Manager/Services'>
-              <h3 className="text-[#FF9100]">Услуги</h3>
-            </Link>
-            <Link href='/Manager/Statistics'>
-              <h3 className="text-[#FF9100]">Статистика</h3>
-            </Link>
-          </>
-        );
-      case 'ADMIN':
-        return (
-          <>
-            <Link href='/business/englishpro/admin/timetable'>
-              <h3 className="text-[#FF9100]">Расписание</h3>
-            </Link>
-            <Link href='/business/englishpro/admin/profile'>
+            <Link href={`/business/${businessSlug}/admin/profile`}>
               <h3 className="text-[#FF9100]">Профиль</h3>
             </Link>
           </>
         );
-      default: // CLIENT
+      case 'business':
         return (
           <>
-            <Link href='/business/englishpro/user/timetable'>
+            <Link href={`/business/${businessSlug}/admin/timetable`}>
+              <h3 className="text-[#FF9100]">Расписание</h3>
+            </Link>
+            <Link href={`/business/${businessSlug}/admin/profile`}>
+              <h3 className="text-[#FF9100]">Профиль</h3>
+            </Link>
+          </>
+        );
+      default: // user
+        return (
+          <>
+            <Link href={`/business/${businessSlug}/user/timetable`}>
               <h3 className="text-[#FF9100]">Расписание</h3>
             </Link>
           </>
@@ -106,12 +92,29 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
               >
                 Поддержка
               </Link>
-              <Link 
-                href="/register" 
-                className="bg-[#FF9100] hover:bg-[#E67E00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Создать страницу
-              </Link>
+              {session?.user?.role === 'admin' && (
+                <Link 
+                  href="/business/create" 
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Создать бизнес
+                </Link>
+              )}
+              {!session ? (
+                <Link 
+                  href="/register" 
+                  className="bg-[#FF9100] hover:bg-[#E67E00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Регистрация
+                </Link>
+              ) : (
+                <Link 
+                  href="/dashboard" 
+                  className="bg-[#FF9100] hover:bg-[#E67E00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Личный кабинет
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -136,8 +139,9 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
         </Link>
 
         <nav className="flex gap-10">
-          <Link href='/#reviewsBlock'><h3 className="text-[#FF9100]">Отзывы</h3></Link>
-          <Link href="/#pricesBlock"><h3 className="text-[#FF9100]">Цены</h3></Link>
+          <Link href={`/business/${businessSlug}`}><h3 className="text-[#FF9100]">О нас</h3></Link>
+          <Link href={`/business/${businessSlug}#reviews`}><h3 className="text-[#FF9100]">Отзывы</h3></Link>
+          <Link href={`/business/${businessSlug}#prices`}><h3 className="text-[#FF9100]">Цены</h3></Link>
           {getRoleBasedLinks()}
         </nav>
 
@@ -149,7 +153,9 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
                 <h3 className="text-white">Вход</h3>
               </Link>
             ) : (
-              <Link className='flex gap-2' href="/business/englishpro/user/profile">
+              <Link className='flex gap-2' href={userRole === 'business' || userRole === 'admin' 
+                ? `/business/${businessSlug}/admin/profile` 
+                : `/business/${businessSlug}/user/profile`}>
                 <h3 className="text-white">Профиль</h3>
                 <figure>
                   <Image
@@ -183,12 +189,14 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
                 >
                   О платформе
                 </Link>
-                <Link 
-                  href="/register" 
-                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
-                >
-                  Создать свою страницу
-                </Link>
+                {session?.user?.role === 'admin' && (
+                  <Link 
+                    href="/business/create" 
+                    className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Создать новый бизнес
+                  </Link>
+                )}
               </div>
             </div>
           </div>

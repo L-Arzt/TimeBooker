@@ -23,30 +23,50 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/business/englishpro/user/profile', request.url));
     }
 
-    // Защищенные пути
-    const protectedPaths = [
-        '/Admin',
-        '/User',
-        '/business/englishpro/admin',
-        '/business/englishpro/user'
-    ];
+    // Проверка авторизации для защищенных путей
+    const token = await getToken({ req: request });
+    const path = request.nextUrl.pathname;
 
-    const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
+    // Извлечение slug бизнеса из URL, если он есть
+    const businessSlugMatch = path.match(/^\/business\/([^\/]+)/);
+    const businessSlug = businessSlugMatch ? businessSlugMatch[1] : null;
 
-    if (isProtectedPath) {
-        const token = await getToken({ req: request });
-
+    // Проверка доступа к админ-панели бизнеса
+    if (path.includes('/admin')) {
         if (!token) {
             const url = new URL('/login', request.url);
             url.searchParams.set('callbackUrl', request.url);
             return NextResponse.redirect(url);
         }
 
-        // Проверка роли для админских путей
-        if (request.nextUrl.pathname.startsWith('/Admin') || request.nextUrl.pathname.startsWith('/business/englishpro/admin')) {
-            if (token.role !== 'admin') {
-                return NextResponse.redirect(new URL('/', request.url));
-            }
+        // Только admin и business могут получить доступ к админ-панели
+        if (token.role !== 'admin' && token.role !== 'business') {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+
+        // Если это business, нужно проверить, владеет ли он этим бизнесом
+        // Эта проверка должна быть реализована на стороне сервера в API-маршрутах
+    }
+
+    // Проверка доступа к пользовательским страницам бизнеса
+    if (path.includes('/user') && !path.endsWith('/login') && !path.endsWith('/register')) {
+        if (!token) {
+            const url = new URL('/login', request.url);
+            url.searchParams.set('callbackUrl', request.url);
+            return NextResponse.redirect(url);
+        }
+    }
+
+    // Доступ к панели администратора
+    if (path.startsWith('/dashboard')) {
+        if (!token) {
+            const url = new URL('/login', request.url);
+            url.searchParams.set('callbackUrl', request.url);
+            return NextResponse.redirect(url);
+        }
+
+        if (token.role !== 'admin') {
+            return NextResponse.redirect(new URL('/', request.url));
         }
     }
 

@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import BusinessTimetablePage from '@/app/components/BusinessTimetablePage';
 import { getWeekRange } from '@/app/utils/dateUtils';
 
-export default async function EnglishProAdminTimetablePage() {
+export default async function FitnessClubUserTimetablePage() {
     const prisma = new PrismaClient({});
     const weekRange = getWeekRange();
 
@@ -14,7 +14,7 @@ export default async function EnglishProAdminTimetablePage() {
                     lte: weekRange.to,
                 },
                 business: {
-                    slug: 'englishpro'
+                    slug: 'fitnessclub'
                 }
             },
         });
@@ -22,5 +22,5 @@ export default async function EnglishProAdminTimetablePage() {
     }
 
     const data = await getData();
-    return <BusinessTimetablePage data={data} weekRange={weekRange} isAdmin={true} />;
+    return <BusinessTimetablePage data={data} weekRange={weekRange} isAdmin={false} />;
 } 

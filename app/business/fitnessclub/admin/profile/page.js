@@ -3,7 +3,7 @@ import { NextAuthOptions } from '@/config';
 import BusinessProfilePage from '@/app/components/BusinessProfilePage';
 import prisma from '@/app/libs/prisma';
 
-export default async function EnglishProAdminProfilePage() {
+export default async function FitnessClubAdminProfilePage() {
     const session = await getServerSession(NextAuthOptions);
 
     if (!session) {
@@ -20,7 +20,7 @@ export default async function EnglishProAdminProfilePage() {
         where: {
             userId: session.user.id,
             business: {
-                slug: 'englishpro'
+                slug: 'fitnessclub'
             }
         },
         orderBy: {

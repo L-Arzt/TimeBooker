@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ThemeProvider from './components/ThemeProvider';
+import SessionWrapper from './components/SessionWrapper';
 import { getServerSession } from 'next-auth';
 import React from 'react';
 import TimeBookerHeader from './components/TimeBookerHeader';
@@ -28,21 +29,23 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="ru">
       <body className={inter.className}>
-        <ThemeProvider session={session}>
-          {isBusinessPage ? (
-            // Для страниц бизнеса не добавляем хедер и футер, так как они будут добавлены в layout бизнеса
-            React.cloneElement(children, { session })
-          ) : (
-            // Для других страниц добавляем хедер и футер
-            <div className="flex flex-col min-h-screen">
-              <TimeBookerHeader isMainPage={isMainPage} />
-              <main className="flex-grow">
-                {React.cloneElement(children, { session })}
-              </main>
-              <TimeBookerFooter businessName="TimeBooker" businessType="Платформа онлайн-бронирования" />
-            </div>
-          )}
-        </ThemeProvider>
+        <SessionWrapper>
+          <ThemeProvider session={session}>
+            {isBusinessPage ? (
+              // Для страниц бизнеса не добавляем хедер и футер, так как они будут добавлены в layout бизнеса
+              React.cloneElement(children, { session })
+            ) : (
+              // Для других страниц добавляем хедер и футер
+              <div className="flex flex-col min-h-screen">
+                <TimeBookerHeader isMainPage={isMainPage} />
+                <main className="flex-grow">
+                  {React.cloneElement(children, { session })}
+                </main>
+                <TimeBookerFooter businessName="TimeBooker" businessType="Платформа онлайн-бронирования" />
+              </div>
+            )}
+          </ThemeProvider>
+        </SessionWrapper>
       </body>
     </html>
   );

@@ -4,12 +4,12 @@ import BusinessLayout from '@/app/components/BusinessLayout';
 
 // Данные о бизнесе
 const businessData = {
-    name: 'EnglishPro',
-    type: 'Школа английского языка',
-    slug: 'englishpro'
+    name: 'FitnessClub',
+    type: 'Фитнес-центр',
+    slug: 'fitnessclub'
 };
 
-export default async function EnglishProLayout({ children }) {
+export default async function FitnessClubLayout({ children }) {
     const session = await getServerSession(NextAuthOptions);
 
     return (
