@@ -120,13 +120,30 @@ export default function TimeTableAdmin({ data, weekRange }) {
 
     function buildTable(data) {
         const TimeLessonS = {
-            1: '8:30', 2: '10:15', 3: '12:00', 4: '14:15', 5: '16:00', 6: '17:50',
+            1: '09:00',
+            2: '10:10',
+            3: '11:20',
+            4: '12:30',
+            5: '13:40',
+            6: '14:50',
+            7: '16:00',
+            8: '17:10',
+            9: '18:20',
         };
         const TimeLessonPo = {
-            1: '10:05', 2: '11:50', 3: '13:35', 4: '15:50', 5: '17:35', 6: '21:00',
+            1: '10:00',
+            2: '11:10',
+            3: '12:20',
+            4: '13:30',
+            5: '14:40',
+            6: '15:50',
+            7: '17:00',
+            8: '18:10',
+            9: '19:20',
         };
         let table = [];
-        for (let i = 1; i < 7; i++) {
+        Object.keys(TimeLessonS).forEach((key) => {
+            const i = Number(key);
             let tablePart = (
                 <TableRow className='transition-all duration-300 ease-in-out hover:bg-gray-100 shadow-sm rounded-md' key={`row-${i}`}>
                     <TableCell className="py-3 px-5 font-medium text-gray-700">{TimeLessonS[i]}<hr />{TimeLessonPo[i]}</TableCell>
@@ -231,7 +248,7 @@ export default function TimeTableAdmin({ data, weekRange }) {
                 </TableRow>
             );
             table.push(tablePart);
-        }
+        });
         return table;
     }
 

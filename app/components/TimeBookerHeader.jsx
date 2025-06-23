@@ -80,20 +80,6 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
               >
                 Тарифы
               </Link>
-              <Link 
-                href="/support" 
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Поддержка
-              </Link>
-              {session?.user?.role === 'admin' && (
-                <Link 
-                  href="/business/create" 
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Создать бизнес
-                </Link>
-              )}
               {!session ? (
                 <Link 
                   href="/register" 
@@ -101,14 +87,7 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
                 >
                   Регистрация
                 </Link>
-              ) : (
-                <Link 
-                  href="/dashboard" 
-                  className="bg-[#FF9100] hover:bg-[#E67E00] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Личный кабинет
-                </Link>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -183,14 +162,7 @@ export default async function TimeBookerHeader({ businessName, businessType, isM
                 >
                   О платформе
                 </Link>
-                {session?.user?.role === 'admin' && (
-                  <Link 
-                    href="/business/create" 
-                    className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Создать новый бизнес
-                  </Link>
-                )}
+
               </div>
             </div>
           </div>

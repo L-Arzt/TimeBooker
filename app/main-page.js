@@ -1,4 +1,8 @@
+'use client';
+import { useState } from 'react';
+
 export default function TimeBookerMainPage() {
+    const [showExamples, setShowExamples] = useState(false);
     return (
         <div className="min-h-screen bg-white">
             {/* Hero Section */}
@@ -14,10 +18,33 @@ export default function TimeBookerMainPage() {
                         <button className="bg-[#FF9100] hover:bg-[#E67E00] text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
                             Начать бесплатно
                         </button>
-                        <button className="border-2 border-[#FF9100] text-[#FF9100] hover:bg-[#FF9100] hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
+                        <button
+                            className="border-2 border-[#FF9100] text-[#FF9100] hover:bg-[#FF9100] hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition-colors"
+                            onClick={() => setShowExamples((prev) => !prev)}
+                        >
                             Посмотреть примеры
                         </button>
                     </div>
+                    {showExamples && (
+                        <div className="mt-6 flex flex-col items-center gap-2 animate-fade-in">
+                            <a
+                                href="/business/englishpro"
+                                className="text-[#FF9100] underline text-lg hover:text-orange-700 transition-colors"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Пример: Школа английского (englishpro)
+                            </a>
+                            <a
+                                href="/business/fitnessclub"
+                                className="text-[#FF9100] underline text-lg hover:text-orange-700 transition-colors"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Пример: Фитнес-клуб (fitnessclub)
+                            </a>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -52,7 +79,7 @@ export default function TimeBookerMainPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold mb-3">Аналитика и отчеты</h3>
+                            <h3 className="text-xl font-semibold mb-3">Аналитика</h3>
                             <p className="text-gray-600">Отслеживайте статистику и эффективность вашего бизнеса</p>
                         </div>
                     </div>
@@ -182,4 +209,4 @@ export default function TimeBookerMainPage() {
             </section>
         </div>
     );
-} 
+}

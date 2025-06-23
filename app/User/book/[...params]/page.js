@@ -14,12 +14,25 @@ export default function Book({ params }) {
 
     const TypeLearningList = [
         {
-            value: 'Индивидуальное',
-            label: 'Индивидуальное',
+            value: 'Онлайн',
+            label: 'Онлайн',
+            // icon: Turtle,
         },
         {
-            value: 'Групповое',
-            label: 'Групповое',
+            value: 'Офлайн',
+            label: 'Офлайн',
+        },
+        {
+            value: 'Индивидуально',
+            label: 'Индивидуально',
+        },
+        {
+            value: 'Групповой',
+            label: 'Групповой',
+        },
+        {
+            value: 'Консультация',
+            label: 'Консультация',
         },
     ];
 
@@ -81,7 +94,7 @@ export default function Book({ params }) {
                             <MultiSelect
                                 options={TypeLearningList}
                                 onValueChange={setSelectedLearning}
-                                placeholder="Выберите тип занятия "
+                                placeholder="Выберите формат"
                                 animation={2}
                                 variant="inverted"
                                 className="w-[100%] rounded-[10px] pl-3 bg-white text-[#b1b1b1]"

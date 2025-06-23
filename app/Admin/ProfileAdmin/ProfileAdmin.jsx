@@ -7,21 +7,28 @@ import Image from 'next/image';
 
 export default function ProfileAdmin({ user, lessons }) {
     const TimeLessonS = {
-        1: '8:30',
-        2: '10:15',
-        3: '12:00',
-        4: '14:15',
-        5: '16:00',
-        6: '17:50',
-    };
-    const TimeLessonPo = {
-        1: '10:05',
-        2: '11:50',
-        3: '13:35',
-        4: '15:50',
-        5: '17:35',
-        6: '21:00',
-    };
+        1: '09:00',
+        2: '10:10',
+        3: '11:20',
+        4: '12:30',
+        5: '13:40',
+        6: '14:50',
+        7: '16:00',
+        8: '17:10',
+        9: '18:20',
+      };
+      
+      const TimeLessonPo = {
+        1: '10:00',
+        2: '11:10',
+        3: '12:20',
+        4: '13:30',
+        5: '14:40',
+        6: '15:50',
+        7: '17:00',
+        8: '18:10',
+        9: '19:20',
+      };
     const TimeOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 
     const now = new Date();
@@ -32,12 +39,6 @@ export default function ProfileAdmin({ user, lessons }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [telegramId, setTelegramId] = useState(user.settings?.telegramId || '');
-    const [testType, setTestType] = useState('user');
-    const testTypes = [
-        { value: 'user', label: 'Тестовое уведомление для пользователя' },
-        { value: 'admin', label: 'Тестовое уведомление для администратора' },
-        { value: 'business', label: 'Тестовое уведомление для бизнеса' },
-    ];
 
     const handleShowMoreFuture = () => {
         setShowMoreFuture(!showMoreFuture);
@@ -59,7 +60,7 @@ export default function ProfileAdmin({ user, lessons }) {
             const response = await fetch('/api/notifications/test', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, type: testType }),
+                body: JSON.stringify({ userId: user.id }),
             });
             if (response.ok) {
                 setMessage('Тестовое уведомление отправлено');
@@ -122,18 +123,9 @@ export default function ProfileAdmin({ user, lessons }) {
                                 <h2 className='font-bold text-center text-2xl mt-4'>Тестирование уведомлений</h2>
                                 <div className='space-y-4 mt-4'>
                                     <p className='text-stone-500 text-center'>
-                                        Выберите тип тестового уведомления и отправьте его себе для проверки.
+                                        Нажмите кнопку, чтобы отправить себе тестовое уведомление.
                                     </p>
                                     <div className='flex flex-col items-center gap-4'>
-                                        <select
-                                            value={testType}
-                                            onChange={e => setTestType(e.target.value)}
-                                            className='border rounded-3xl px-4 py-2 text-lg'
-                                        >
-                                            {testTypes.map(opt => (
-                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                            ))}
-                                        </select>
                                         <button
                                             onClick={sendTestNotification}
                                             disabled={isLoading}

@@ -117,16 +117,21 @@ const CarouselContent = React.forwardRef(({ className, ...props }, ref) => {
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    (<div ref={carouselRef} className="overflow-hidden">
-      <div
-        ref={ref}
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
-        )}
-        {...props} />
-    </div>)
+    <div
+      ref={node => {
+        carouselRef(node);
+        if (ref) {
+          if (typeof ref === "function") ref(node);
+          else ref.current = node;
+        }
+      }}
+      className={cn(
+        "flex overflow-hidden",
+        orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
+        className
+      )}
+      {...props}
+    />
   );
 })
 CarouselContent.displayName = "CarouselContent"

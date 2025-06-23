@@ -12,8 +12,26 @@ export default function Book({ params }) {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const TypeLearningList = [
-        { value: 'Индивидуальное', label: 'Индивидуальное' },
-        { value: 'Групповое', label: 'Групповое' },
+        {
+            value: 'Онлайн',
+            label: 'Онлайн',
+        },
+        {
+            value: 'Офлайн',
+            label: 'Офлайн',
+        },
+        {
+            value: 'Индивидуально',
+            label: 'Индивидуально',
+        },
+        {
+            value: 'Групповой',
+            label: 'Групповой',
+        },
+        {
+            value: 'Консультация',
+            label: 'Консультация',
+        },
     ];
     const initialState = { message: '' };
     const [selectedLearning, setSelectedLearning] = useState([]);
@@ -54,7 +72,7 @@ export default function Book({ params }) {
                     </label>
                     <label className="w-[90%]">
                         <div className="">
-                            <MultiSelect options={TypeLearningList} onValueChange={setSelectedLearning} placeholder="Выберите тип занятия " animation={2} variant="inverted" className="w-[100%]  rounded-[10px] pl-3  bg-white text-[#b1b1b1]" />
+                            <MultiSelect options={TypeLearningList} onValueChange={setSelectedLearning} placeholder="Выберите формат " animation={2} variant="inverted" className="w-[100%]  rounded-[10px] pl-3  bg-white text-[#b1b1b1]" />
                         </div>
                     </label>
 

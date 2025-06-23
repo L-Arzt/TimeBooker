@@ -18,9 +18,6 @@ export default function TimeBookerFooter({ businessName = 'TimeBooker', business
               <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
                 Контакты
               </Link>
-              <Link href="/support" className="text-gray-300 hover:text-white transition-colors">
-                Поддержка
-              </Link>
             </div>
           </div>
 
@@ -41,9 +38,6 @@ export default function TimeBookerFooter({ businessName = 'TimeBooker', business
           <div>
             <h4 className="text-lg font-semibold mb-4">Быстрые ссылки</h4>
             <div className="space-y-2">
-              <Link href="/register" className="block text-gray-300 hover:text-white transition-colors">
-                Создать страницу
-              </Link>
               <Link href="/pricing" className="block text-gray-300 hover:text-white transition-colors">
                 Тарифы
               </Link>

@@ -12,13 +12,25 @@ export default function Book({ params }) {
 
   const TypeLearningList = [
     {
-      value: 'Индивидуальное',
-      label: 'Индивидуальное',
+      value: 'Онлайн',
+      label: 'Онлайн',
       // icon: Turtle,
     },
     {
-      value: 'Групповое',
-      label: 'Групповое',
+      value: 'Офлайн',
+      label: 'Офлайн',
+    },
+    {
+      value: 'Индивидуально',
+      label: 'Индивидуально',
+    },
+    {
+      value: 'Групповой',
+      label: 'Групповой',
+    },
+    {
+      value: 'Консультация',
+      label: 'Консультация',
     },
 
   ];
@@ -84,7 +96,7 @@ export default function Book({ params }) {
                 options={TypeLearningList}
                 onValueChange={setSelectedLearning}
                 // defaultValue={selectedFrameworks} // optional
-                placeholder="Выберите тип занятия " // optional
+                placeholder="Выберите формат" // optional
                 animation={2} // optional
                 variant="inverted" // optional
                 className="w-[100%]  rounded-[10px] pl-3  bg-white text-[#b1b1b1]"

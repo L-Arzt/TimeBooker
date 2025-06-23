@@ -1,3 +1,4 @@
+'use client';
 import Image from "next/image";
 import Link from "next/link";
 import { getBusinessBySlug } from '@/app/libs/businessService';
@@ -17,6 +18,7 @@ import ImageWithBorder from '../../elemPage/imagewithborder'
 import AboutMeCard from '../../elemPage/aboutmeblockcard'
 import PriceCard from '../../elemPage/priceblockcard'
 import ReviewsSlider from './ReviewsSlider';
+import ReviewsCarousel from './ReviewsCarousel';
 import PromoBlock from './PromoBlock';
 
 export default async function BusinessDynamicPage({ params }) {
@@ -33,7 +35,7 @@ export default async function BusinessDynamicPage({ params }) {
 
     return (
         <section className="relative">
-            <Image className="absolute w-full -top-[5%] -z-30" src={bgMain} alt="bg" />
+            <Image className="absolute w-full -top-[10%] -z-30" src={bgMain} alt="bg" />
             <section className="flex items-center justify-around my-10  relative flex-wrap">
                 <header>
                     <h1 className="text-[#374B5C] text-[33px] py-5">{business.type}</h1>

@@ -10,8 +10,29 @@ export default function Profile({ user, lessons }) {
     const [isEditing, setIsEditing] = useState(false);
     const [message, setMessage] = useState('');
     const [localUser, setLocalUser] = useState(user);
-    const TimeLessonS = { 1: '8:30', 2: '10:15', 3: '12:00', 4: '14:15', 5: '16:00', 6: '17:50' };
-    const TimeLessonPo = { 1: '10:05', 2: '11:50', 3: '13:35', 4: '15:50', 5: '17:35', 6: '21:00' };
+    const TimeLessonS = {
+        1: '09:00',
+        2: '10:10',
+        3: '11:20',
+        4: '12:30',
+        5: '13:40',
+        6: '14:50',
+        7: '16:00',
+        8: '17:10',
+        9: '18:20',
+      };
+      
+      const TimeLessonPo = {
+        1: '10:00',
+        2: '11:10',
+        3: '12:20',
+        4: '13:30',
+        5: '14:40',
+        6: '15:50',
+        7: '17:00',
+        8: '18:10',
+        9: '19:20',
+      };
     const TimeOptions = { weekday: 'long', month: 'long', day: 'numeric' };
     const now = new Date();
     const [showMore, setShowMore] = useState(false);
